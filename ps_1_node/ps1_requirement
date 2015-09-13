@@ -1,0 +1,12 @@
+Start with the minimal_nodes package in the class repository.
+Create a new package of your own (with a unique name).  Edit package.xml and CMakeLists.txt accordingly.
+Create a new node (in your "src" directory) called "minimal_commander.cpp".  Inside your code, set values for "amplitude" and frequency.  Your routine should compute a sinusoidal
+output of the specified amplitude and frequency. It should publish the resulting output to the topic
+"vel_cmd" with data type std_msgs::Float64.
+Your source code must include comments explaining the intent.
+Create a launch file to launch three  nodes: the (provided) minimal_simulator, minimal_controller, and your minimal_commander.  Invoke your  launch file to start up all 3 nodes. (Don't forget—you will need to have “roscore” running in some window).
+Run rqt_plot and capture a system response.  Edit your code to change the amplitude and/or frequency and recompile and re-launch your nodes.  Experiment with values of amplitude and frequency.  (Alternatively, you can have your commander subscribe to additional topics for amplitude and frequency, then use: rostopic pub to change these values without having to edit and recompile).
+*Submit assignment:
+Using Blackboard, submit your (commented!) minimal_commander.cpp source code and your launch
+file. Also submit your rqt_plot screen captures. Comment on the performance. What would you say is
+the maximum frequency that your system can follow? (yes, this is subjective).  Try changing the values of Kv in the controller and dt in the simulator.  How do these affect the performance?
