@@ -41,14 +41,13 @@ int main(int argc, char **argv) {
     g_vel_cmd.data = 0.0; // init velocity command to zero 
     g_amp.data = 0.0;
     g_fre.data = 0.0;
- 
- 	int i = 0;
+    double time = 0.0;
+
     while (ros::ok()) {
-    	i = i + 1;
-    	dt = i * dt;
-        ROS_INFO("iteration time = %d", i);
     	// the velocity profile is a sine function: v = Asin(2pift)
-        g_vel_cmd.data = g_amp.data * sin(2 * PI * g_fre.data * dt);
+        g_vel_cmd.data = g_amp.data * sin(2 * PI * g_fre.data * time);
+        time += dt;
+        ROS_INFO("Time = %f", time);
         my_publisher_object.publish(g_vel_cmd); // publish velocity command 
         ROS_INFO("velocity command = %f", g_vel_cmd.data);
         ros::spinOnce(); //allow data update from callback; 
