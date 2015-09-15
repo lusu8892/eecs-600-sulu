@@ -35,8 +35,8 @@ int main(int argc, char **argv) {
     ros::Subscriber my_subscriber_object1 = nh.subscribe("amplitude", 1, myCallbackAmplitude);
     ros::Subscriber my_subscriber_object2 = nh.subscribe("frequency", 1, myCallbackFrequency);
     ros::Publisher my_publisher_object = nh.advertise<std_msgs::Float64>("vel_cmd", 1);
-    double dt = 0.1; //100ms integration time step 
-    double sample_rate = 1 / dt; // compute the corresponding update frequency 
+    double dt = 0.01; //10ms integration time step 
+    double sample_rate = 10.0; // compute the corresponding update frequency 
     ros::Rate naptime(sample_rate); // use to regulate loop rate 
     g_vel_cmd.data = 0.0; // init velocity command to zero 
     g_amp.data = 0.0;
