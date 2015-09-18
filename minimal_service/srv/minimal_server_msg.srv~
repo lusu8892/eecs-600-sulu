@@ -1,0 +1,5 @@
+string amplitude
+
+---
+std_msgs/Float64 a
+std_msgs/Float64 f
