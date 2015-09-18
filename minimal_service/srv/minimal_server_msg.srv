@@ -1,4 +1,5 @@
-string amplitude
+float64 amplitude
+float64 frequency
 ---
-std_msgs/Float64 a
-std_msgs/Float64 f
+float64 amplitude
+float64 frequency
