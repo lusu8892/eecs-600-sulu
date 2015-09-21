@@ -1,13 +1,15 @@
 // minimal_commander node: 
 // This is node is used to PUBLISH the resulting output to the topic 
 // "vel_cmd" with data type std_msgs::Float64. The velocity profile should be SINE function
-// with the specified amplitude and frequency. The
-// Alternatively, you can have your commander subscribe to additional topics for 
-// amplitude and frequency then use: rostopic pub to change these values without having to edit and recompile).
+// with the specified amplitude and frequency. 
+// In this minimal_commander node, a service that responds to a client by setting the amplitude and 
+// frequency to the requested values has been included.
 #include<ros/ros.h> 
 #include<std_msgs/Float64.h>
 #include<math.h>
-// #include<minimal_service/minial_server_msg.h>
+#include<minimal_service/minimal_server_msg.h>
+#include <iostream>
+#include <string>
 
 #define PI 3.14159265
 
@@ -15,26 +17,25 @@ std_msgs::Float64 g_vel_cmd;
 std_msgs::Float64 g_amp;
 std_msgs::Float64 g_fre;
 
-void myCallbackAmplitude(const std_msgs::Float64& message_holder) {
-    // check for data on topic "amplitude" 
-    ROS_INFO("received amplitude value is: %f", message_holder.data);
-    g_amp.data = message_holder.data; // post the received data in a global var for access by 
-    //main prog. 
-}
+bool callback(minimal_service::minimal_server_msgRequest& request, minimal_service::minimal_server_msgResponse& response)
+{
+    ROS_INFO("callback activated");
+    g_amp.data = request.amplitude;
+    g_fre.data = request.frequency;
 
-void myCallbackFrequency(const std_msgs::Float64& message_holder) {
-    // check for data on topic "frequency" 
-    ROS_INFO("received frequency command value is: %f", message_holder.data);
-    g_fre.data = message_holder.data; // post the received data in a global var for access by 
-    // main prog. 
+    // fill in the response so that we can check if response got by in client node
+    response.amplitude = request.amplitude;
+    response.frequency = request.frequency;
+  return true;
 }
 
 int main(int argc, char **argv) {
     ros::init(argc, argv, "minimal_commander"); //name this node 
     // when this compiled code is run, ROS will recognize it as a node called "minimal_commander" 
     ros::NodeHandle nh; // node handle 
-    ros::Subscriber my_subscriber_object1 = nh.subscribe("amplitude", 1, myCallbackAmplitude);
-    ros::Subscriber my_subscriber_object2 = nh.subscribe("frequency", 1, myCallbackFrequency);
+    
+    ros::ServiceServer server = nh.advertiseService("specify_value",callback);
+
     ros::Publisher my_publisher_object = nh.advertise<std_msgs::Float64>("vel_cmd", 1);
     double dt = 0.01; //10ms integration time step 
     double sample_rate = 10.0; // compute the corresponding update frequency 

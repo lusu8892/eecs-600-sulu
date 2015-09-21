@@ -1,7 +1,0 @@
-Extend your PS1 by writing an additional node to command the amplitude and frequency of your velocity commander.
-
-In your velocity-command node, add a service that responds to a client by setting the amplitude and frequency to the requested values
-
-Write a corresponding client node that prompts the user to enter a frequency and an amplitude, then sends off these values as a service request to the velocity-commander node.
-
-Document your code.  illustrate your results with screen captures.  Submit the (documented) source code for your two modified nodes.  Comment on your observations.

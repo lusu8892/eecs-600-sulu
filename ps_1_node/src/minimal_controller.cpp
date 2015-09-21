@@ -32,7 +32,7 @@ int main(int argc, char **argv) {
     ros::Subscriber my_subscriber_object2 = nh.subscribe("vel_cmd", 1, myCallbackVelCmd);
     //publish a force command computed by this controller; 
     ros::Publisher my_publisher_object = nh.advertise<std_msgs::Float64>("force_cmd", 1);
-    double Kv = 1.0; // velocity feedback gain 
+    double Kv = 5.0; // velocity feedback gain
     double dt_controller = 0.1; //specify 10Hz controller sample rate (pretty slow, but 
     //illustrative) 
     double sample_rate = 1.0 / dt_controller; // compute the corresponding update frequency 
