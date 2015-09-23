@@ -6,12 +6,16 @@
 #include<std_msgs/Float64.h> 
 std_msgs::Float64 g_velocity;
 std_msgs::Float64 g_force;
+int i;
 
 void myCallback(const std_msgs::Float64& message_holder) {
     // checks for messages on topic "force_cmd" 
     ROS_INFO("received force value is: %f", message_holder.data);
     g_force.data = message_holder.data; // post the received data in a global var for access by 
-    // main prog. 
+    // main prog.
+    ++i;
+    ROS_INFO("times mycallback invoked = %d", i);
+
 }
 
 int main(int argc, char **argv) {

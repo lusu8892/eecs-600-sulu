@@ -16,7 +16,7 @@
 std_msgs::Float64 g_vel_cmd;
 std_msgs::Float64 g_amp;
 std_msgs::Float64 g_fre;
-
+int i;
 bool callback(minimal_service::minimal_server_msgRequest& request, minimal_service::minimal_server_msgResponse& response)
 {
     ROS_INFO("callback activated");
@@ -26,7 +26,9 @@ bool callback(minimal_service::minimal_server_msgRequest& request, minimal_servi
     // fill in the response so that we can check if response got by in client node
     response.amplitude = request.amplitude;
     response.frequency = request.frequency;
-  return true;
+    ++i;
+    ROS_INFO("times callback invoked = %d", i);
+    return true;
 }
 
 int main(int argc, char **argv) {
