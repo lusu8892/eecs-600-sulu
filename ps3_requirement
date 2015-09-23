@@ -1,0 +1,5 @@
+For assignment 3, you will build an action server and action client pair.  Your action client should prompt you to input an amplitude, a frequency and a number of cycles.  The action client should send this as a "goal" message (an action message that you must define in an action file).  
+
+Your velocity commander should be modified to become an action server.  It should receive goals from action clients and perform the desired operation (command velocities at the specified amplitude, frequency and number of cycles).  I should inform the client of "goal succeeded" when the action is complete (and command a velocity of zero as it's last command).  
+
+Submit your code, including action server, action client and action message.  Also submit screenshots of successful operation.

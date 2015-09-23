@@ -1,2 +1,2 @@
 # eecs-600-sulu
-This is the branch PS_2_Class, which is the class version of PS2.
+This is the branch PS_3, which is the repo to contain ps3 assignment.

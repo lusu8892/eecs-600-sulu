@@ -55,7 +55,7 @@ MinimalCommanderClass::MinimalCommanderClass(ros::NodeHandle* nodehandle, double
     // sample_rate_ = 10.0 ;// compute the corresponding update frequency
     time_ = 0.0;
     num_count_ = 0;
-    //ros::Rate naptime_(sample_rate_); // use to regulate loop rate 
+     
 
     // can also do tests/waits to make sure all required services, topics, etc are alive
 }
