@@ -1,8 +1,8 @@
 // This is a class based version of minimal_commander.cpp
-#include<ros/ros.h> 
-#include<std_msgs/Float64.h>
-#include<math.h>
-#include<minimal_service/minimal_server_msg.h>
+#include <ros/ros.h> 
+#include <std_msgs/Float64.h>
+#include <math.h>
+#include <minimal_service/minimal_server_msg.h>
 #include <iostream>
 #include <string>
 
@@ -46,7 +46,6 @@ MinimalCommanderClass::MinimalCommanderClass(ros::NodeHandle* nodehandle, double
     // package up the messy work of creating subscribers; do this overhead in constructor
     initializePublishers();
     initializeServices();
-    
     //initialize variables here, as needed
     vel_cmd_.data = 0.0; 
     amplitute_.data = 0.0;
@@ -67,6 +66,7 @@ void MinimalCommanderClass::velProfileGen() {
         ROS_INFO("Time = %f", time_);
         minimal_commander_pub_.publish(vel_cmd_); // publish velocity command 
         ROS_INFO("velocity command = %f", vel_cmd_.data);
+        ROS_INFO("I am running");
         ros::spinOnce(); //allow data update from callback; 
         naptime_.sleep(); // wait for remainder of specified period;
     }   
@@ -90,7 +90,6 @@ void MinimalCommanderClass::initializePublishers()
     // note: COULD make minimal_publisher_ a public member function, if want to use it within "main()"
 }
 
-
 //member function implementation for a service callback function
 bool MinimalCommanderClass::serviceCallback(minimal_service::minimal_server_msgRequest& request, minimal_service::minimal_server_msgResponse& response) {
     ROS_INFO("callback activated");
@@ -111,7 +110,8 @@ int main(int argc, char **argv) {
     // when this compiled code is run, ROS will recognize it as a node called "minimal_commander" 
     ros::NodeHandle nh; // node handle 
     
-    MinimalCommanderClass minimalCommanderClass(&nh,10.0);
+    double ros_rate = 10.0;
+    MinimalCommanderClass minimalCommanderClass(&nh,ros_rate);
 
     minimalCommanderClass.velProfileGen();
     return 0; // should never get here, unless roscore dies 
