@@ -1,0 +1,14 @@
+#goal definition
+#the lines with the hash signs are merely comments
+#goal, result and feedback are defined by this fixed order, and separated by 3 hyphens
+float64 amplitude_input
+float64 frequency_input
+float64 cycles_input
+---
+#result definition
+float64 amplitde_output
+float64 frequency_output
+float64 cycles_output
+---
+#feedback
+int32 fdbk

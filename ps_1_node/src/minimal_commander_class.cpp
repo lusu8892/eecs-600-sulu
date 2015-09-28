@@ -1,8 +1,11 @@
-// This is a class based version of minimal_commander.cpp
+// This is a class based version of minimal_commander_class.cpp
+// and action service is incoporated in this source file, a substitude
+// service.
 #include <ros/ros.h> 
 #include <std_msgs/Float64.h>
 #include <math.h>
-#include <minimal_service/minimal_server_msg.h>
+#include <actionlib/server/simple_action_server.h>
+#include <minimal_action_service/minimal_action_msgAction.h>
 #include <iostream>
 #include <string>
 
@@ -14,40 +17,53 @@ public:
     MinimalCommanderClass(ros::NodeHandle* nodehandle); //"main" will need to instantiate a ROS nodehandle, then pass it to the constructor
     // may choose to define public methods or public variables, if desired
     ~MinimalCommanderClass();
+    // void executeActionCB(const actionlib::SimpleActionServer<minimal_action_service/minimal_action_msgAction>::GoalConstPtr& goal);
     void velProfileGen(); // this is a member function which is used to generate velocity profile and then publish it to the topic "vel_cmd"
 private:
     // put private member data here;  "private" data will only be available to member functions of this class;
     ros::NodeHandle nh_; // we will need this, to pass between "main" and constructor
     // some objects to support subscriber, service, and publisher
-    ros::ServiceServer minimal_service_;
     ros::Publisher  minimal_commander_pub_;
+    // this class will own a "SimpleActionServer" called "as_".
+    // it will communicate using messages defined in header s<minimal_action_service/minimal_action_msgAction.h>
+    // the type "minimal_action_msgAction" is auto-generated from our name "demo" and generic name "Action"
+    actionlib::SimpleActionServer<minimal_action_service::minimal_action_msgAction> as_;
+    
+    // here are some message types to communicate with our client(s)
+    minimal_action_service::minimal_action_msgGoal goal_; // goal message, received from client
+    minimal_action_service::minimal_action_msgResult result_; // put results here, to be sent back to the client when done w/ goal
+    minimal_action_service::minimal_action_msgFeedback feedback_; // not used in this example; 
+    // would need to use: as_.publishFeedback(feedback_); to send incremental feedback to the client
     
     std_msgs::Float64 vel_cmd_;
     std_msgs::Float64 amplitute_;
-    std_msgs::Float64 frequency_; // example member variable: better than using globals; convenient way to pass data from a subscriber to other member functions
+    std_msgs::Float64 frequency_; // example member variable: better than using globals; 
+    // convenient way to pass data from a subscriber to other member functions
 
     double dt_; //10ms integration time step 
     double sample_rate_; // compute the corresponding update frequency 
     double time_;
 
-    int num_count_;
-    // ros::Rate naptime_;
     ros::Rate* naptime_pointer_;
     // member methods as well:
     void initializePublishers();
-    void initializeServices();
-    
-    //prototype for callback for example service
-    bool serviceCallback(minimal_service::minimal_server_msgRequest& request, minimal_service::minimal_server_msgResponse& response);
+    //prototype for action service callback function, the agrument is a pointer to a goal message
+    void executeActionCB(const actionlib::SimpleActionServer<minimal_action_service/minimal_action_msgAction>::GoalConstPtr& goal);
     
 };
 
-MinimalCommanderClass::MinimalCommanderClass(ros::NodeHandle* nodehandle):nh_(*nodehandle) //, naptime_(rate)
+MinimalCommanderClass::MinimalCommanderClass(ros::NodeHandle* nodehandle):nh_(*nodehandle)
+                    ,as_(nh_, "minimal_action", boost::bind(&MinimalCommanderClass::executeActionCB, this, _1),false)  //, naptime_(rate)
+                    // we specify that the new action server should utilize a function of our own design within its behavior. 
+                    // This function we wish for the action-server to use is called executeActionCB (our own name choice).
 { // constructor
     ROS_INFO("in class constructor of MinimalCommanderClass");
     // package up the messy work of creating subscribers; do this overhead in constructor
+    // do any other desired initializations here...specific to your implementation
+
+    as_.start(); //start the server running
+
     initializePublishers();
-    initializeServices();
     //initialize variables here, as needed
     vel_cmd_.data = 0.0; 
     amplitute_.data = 0.0;
@@ -78,14 +94,6 @@ void MinimalCommanderClass::velProfileGen() {
     }   
 }
 
-//member helper function to set up services:
-// similar syntax to subscriber, required for setting up services outside of "main()"
-void MinimalCommanderClass::initializeServices()
-{
-    ROS_INFO("Initializing Services");
-    minimal_service_ = nh_.advertiseService("specify_value", &MinimalCommanderClass::serviceCallback, this);  
-    // add more services here, as needed
-}
 
 //member helper function to set up publishers;
 void MinimalCommanderClass::initializePublishers()
@@ -96,19 +104,24 @@ void MinimalCommanderClass::initializePublishers()
     // note: COULD make minimal_publisher_ a public member function, if want to use it within "main()"
 }
 
-//member function implementation for a service callback function
-bool MinimalCommanderClass::serviceCallback(minimal_service::minimal_server_msgRequest& request, minimal_service::minimal_server_msgResponse& response) {
-    ROS_INFO("callback activated");
-    amplitute_.data = request.amplitude;
-    frequency_.data = request.frequency;
+//member function implementation for a action service callback function
+bool MinimalCommanderClass::executeActionCB(const actionlib::SimpleActionServer<minimal_action_service/minimal_action_msgAction>::GoalConstPtr& goal) {
+    
+    amplitude_date = goal.amplitute;
+    
 
-    // fill in the response so that we can check if response got by in client node
-    response.amplitude = request.amplitude;
-    response.frequency = request.frequency;
-    ++num_count_;
-    ROS_INFO("times callback invoked = %d", num_count_);
-    return true;
+    if (g_count != goal->input) {
+        ROS_WARN("hey--mismatch!");
+        ROS_INFO("g_count = %d; goal_stamp = %d", g_count, result_.goal_stamp);
+        g_count_failure = true; //set a flag to commit suicide
+        ROS_WARN("informing client of aborted goal");
+        as_.setAborted(result_); // tell the client we have given up on this goal; send the result message as well
+    }
+    else {
+         as_.setSucceeded(result_); // tell the client that we were successful acting on the request, and return the "result" message
+    }
 }
+
 
 
 int main(int argc, char **argv) {
