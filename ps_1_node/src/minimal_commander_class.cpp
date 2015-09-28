@@ -49,8 +49,8 @@ MinimalCommanderClass::MinimalCommanderClass(ros::NodeHandle* nodehandle, double
     
     //initialize variables here, as needed
     vel_cmd_.data = 0.0; 
-    amplitute_.data = 0.0;
-    frequency_.data = 0.0; // example member variable: better than using globals; convenient way to pass data from a subscriber to other member functions
+    // amplitute_.data = 0.0;
+    // frequency_.data = 0.0; // example member variable: better than using globals; convenient way to pass data from a subscriber to other member functions
     dt_ = 0.01; //10ms integration time step
     // sample_rate_ = 10.0 ;// compute the corresponding update frequency
     time_ = 0.0;
