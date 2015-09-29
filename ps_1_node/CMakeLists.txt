@@ -10,7 +10,7 @@ find_package(catkin REQUIRED COMPONENTS
 )
 
 ## System dependencies are found with CMake's conventions
-# find_package(Boost REQUIRED COMPONENTS system)
+find_package(Boost REQUIRED COMPONENTS system)
 
 
 ## Uncomment this if the package has a setup.py. This macro ensures
@@ -127,8 +127,8 @@ include_directories(
 # add_dependencies(ps_1_node ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
 
 ## Declare a C++ executable
-#add_executable(minimal_commander_class src/minimal_commander_class.cpp)
-add_executable(minimal_commander src/minimal_commander.cpp)
+add_executable(minimal_commander_class src/minimal_commander_class.cpp)
+#add_executable(minimal_commander src/minimal_commander.cpp)
 add_executable(minimal_simulator src/minimal_simulator.cpp)
 add_executable(minimal_controller src/minimal_controller.cpp)
 
@@ -138,8 +138,8 @@ add_executable(minimal_controller src/minimal_controller.cpp)
 # add_dependencies(ps_1_node_node ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
 
 ## Specify libraries to link a library or executable target against
-#target_link_libraries(minimal_commander_class  ${catkin_LIBRARIES} )
-target_link_libraries(minimal_commander  ${catkin_LIBRARIES} )
+target_link_libraries(minimal_commander_class  ${catkin_LIBRARIES} )
+#target_link_libraries(minimal_commander  ${catkin_LIBRARIES} )
 target_link_libraries(minimal_simulator  ${catkin_LIBRARIES} )
 target_link_libraries(minimal_controller  ${catkin_LIBRARIES} )
 
