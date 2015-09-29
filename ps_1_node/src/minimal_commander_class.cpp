@@ -40,10 +40,11 @@ private:
     std_msgs::Float64 frequency_; // example member variable: better than using globals; 
     // convenient way to pass data from a subscriber to other member functions
 
+    double cycles_;
     double dt_; //10ms integration time step 
     double sample_rate_; // compute the corresponding update frequency 
     double time_;
-
+    ros::Time* time_now_;
     ros::Rate* naptime_pointer_;
     // member methods as well:
     void initializePublishers();
@@ -73,25 +74,26 @@ MinimalCommanderClass::MinimalCommanderClass(ros::NodeHandle* nodehandle):nh_(*n
     time_ = 0.0;
     num_count_ = 0;
     naptime_pointer_ = new ros::Rate (sample_rate_);
-
+    time_now_ = new ros::Time::now();
     // can also do tests/waits to make sure all required services, topics, etc are alive
 }
 
 MinimalCommanderClass::~MinimalCommanderClass() {
     delete naptime_pointer_;
+    delete time_now_;
 }
 
 void MinimalCommanderClass::velProfileGen() {
-    while(ros::ok()) {
-        vel_cmd_.data = amplitute_.data * sin(2 * PI * frequency_.data * time_);
-        time_+= dt_;
-        ROS_INFO("Time = %f", time_);
-        minimal_commander_pub_.publish(vel_cmd_); // publish velocity command 
-        ROS_INFO("velocity command = %f", vel_cmd_.data);
-        ROS_INFO("I am running");
-        ros::spinOnce(); //allow data update from callback; 
-        naptime_pointer_ -> sleep(); // wait for remainder of specified period;
-    }   
+    // while(ros::ok()) {
+    vel_cmd_.data = amplitute_.data * sin(2 * PI * frequency_.data * time_);
+    time_now_+= dt_;
+    ROS_INFO("Time = %f", time_now_);
+    minimal_commander_pub_.publish(vel_cmd_); // publish velocity command 
+    ROS_INFO("velocity command = %f", vel_cmd_.data);
+    ROS_INFO("I am running");
+    // ros::spinOnce(); //allow data update from callback; 
+    naptime_pointer_ -> sleep(); // wait for remainder of specified period;
+    // }   
 }
 
 
@@ -106,9 +108,15 @@ void MinimalCommanderClass::initializePublishers()
 
 //member function implementation for a action service callback function
 bool MinimalCommanderClass::executeActionCB(const actionlib::SimpleActionServer<minimal_action_service/minimal_action_msgAction>::GoalConstPtr& goal) {
-    
-    amplitude_date = goal.amplitute;
-    
+    // getting specified goal from action client to member variable of Class MinimalCommanderClass
+    amplitude_.data = goal -> amplitute_input;
+    frequency_.data = goal -> frequency_input;
+    cycles_ = goal -> cycles_input;
+
+    // feeding the specifiec goal back to result_ that will be sent back to action service client
+    result_.amplitude_output = amplitude_.data;
+    result_.frequency_output = frequency_.data;
+    result_.cycles_output = cycles_;
 
     if (g_count != goal->input) {
         ROS_WARN("hey--mismatch!");

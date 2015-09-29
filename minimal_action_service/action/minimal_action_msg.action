@@ -9,6 +9,7 @@ float64 cycles_input
 float64 amplitde_output
 float64 frequency_output
 float64 cycles_output
+string outcome
 ---
 #feedback
 int32 fdbk
