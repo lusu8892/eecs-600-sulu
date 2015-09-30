@@ -6,7 +6,7 @@ float64 frequency_input
 float64 cycles_input
 ---
 #result definition
-float64 amplitde_output
+float64 amplitude_output
 float64 frequency_output
 float64 cycles_output
 string outcome
