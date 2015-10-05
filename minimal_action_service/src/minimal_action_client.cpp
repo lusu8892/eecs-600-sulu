@@ -33,6 +33,7 @@ private:
     // here is a "goal" object compatible with the server, as defined in example_action_server/action
     minimal_action_service::minimal_action_msgGoal goal_;
     string answer_;
+    double cycles_get_back_;
     bool server_exists_;
     bool finished_before_timeout_;
     void doneActionCB(const actionlib::SimpleClientGoalState& state, const minimal_action_service::minimal_action_msgResultConstPtr& result);
@@ -75,8 +76,14 @@ int MinimalActionClientClass::actonClientMem()
     	cout << "Please enter the value of amplitude, frequency, and cycles: ";
 		cin >> goal_.amplitude_input >> goal_.frequency_input >> goal_.cycles_input;
     	while(true) {
+
+    		if (abs(goal_.cycles_input - cycles_get_back_) <= 0.001) {
+    			goal_.amplitude_input = 0.0;
+    			goal_.frequency_input = 0.0;
+    			goal_.cycles_input = 0.0;
+    		}
 			// action_client_.sendGoal(goal); // simple example--send goal, but do not specify callbacks
-			action_client_.sendGoal(goal_,boost::bind(&MinimalActionClientClass::doneActionCB,this,_1,_2)); 
+			action_client_.sendGoal(goal_,boost::bind(&MinimalActionClientClass::doneActionCB,this,_1,_2));
 			// we could also name additional callback functions here, if desired
 			// action_client_.sendGoal(goal, &doneCb, &activeCb, &feedbackCb); //e.g., like this
 
@@ -109,6 +116,7 @@ void MinimalActionClientClass::doneActionCB(const actionlib::SimpleClientGoalSta
     ROS_INFO("doneActionCB: server responded with state [%s]", state.toString().c_str());
     ROS_INFO("amplitude = %f; frequency = %f; cycles = %f, outcome = [%s]", 
     		result->amplitude_output, result->frequency_output, result->cycles_output, result->outcome.c_str());
+	cycles_get_back_ = result->cycles_output;
 }
 
 int main(int argc, char** argv) {

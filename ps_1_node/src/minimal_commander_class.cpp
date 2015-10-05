@@ -73,6 +73,7 @@ MinimalCommanderClass::MinimalCommanderClass(ros::NodeHandle* nodehandle):nh_(*n
     vel_cmd_.data = 0.0; 
     amplitude_.data = 0.0;
     frequency_.data = 0.0; // example member variable: better than using globals; convenient way to pass data from a subscriber to other member functions
+    cycles_.data = -1.0;
     dt_ = 0.01; //10ms integration time step
     p_phi_ = 0.0;
     c_phi_ = 0.0;
@@ -99,7 +100,7 @@ void MinimalCommanderClass::executeActionCB(const actionlib::SimpleActionServer<
     // feeding the specifiec goal back to result_ that will be sent back to action service client
     result_.amplitude_output = amplitude_.data;
     result_.frequency_output = frequency_.data;
-    result_.cycles_output = goal -> cycles_input;
+    // result_.cycles_output = goal -> cycles_input;
     result_.outcome = "goal is in process";
 
     if (cycles_.data < goal -> cycles_input) {
@@ -112,18 +113,23 @@ void MinimalCommanderClass::executeActionCB(const actionlib::SimpleActionServer<
         }
     }
     else {
-        amplitude_.data = 0.0;
-        frequency_.data = 0.0;
-        cycles_.data = 0.0;
-        result_.amplitude_output = amplitude_.data;
-        result_.frequency_output = frequency_.data;
-        result_.cycles_output = cycles_.data;
+        // amplitude_.data = 0.0;
+        // frequency_.data = 0.0;
+        // result_.amplitude_output = amplitude_.data;
+        // result_.frequency_output = frequency_.data;
+        // result_.cycles_output = cycles_.data;
         result_.outcome = "goal is completed, the amplitude, frequency, and cycles are set to zero";
         velProfileGen();
         // time_ = 0.0; // time_ is set to zero
         action_server_.setSucceeded(result_);
     }
-    
+
+    result_.cycles_output = cycles_.data;
+
+    if (amplitude_.data == 0.0 && frequency_.data == 0.0) {
+        cycles_.data = -1.0;
+    }
+
     ROS_WARN("informing client of aborted goal");
     action_server_.setAborted(result_); // tell the client we have given up on this goal; send the result message as well
 }
