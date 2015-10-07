@@ -12,17 +12,17 @@ int main(int argc, char **argv) {
 
     std_msgs::Float64 jnt1_position;
 
-    double amplitude = 10.0;
-    double frequency = 5.0;
-    double dt = 0.1;
+    double amplitude = 0.3;
+    double frequency = 15.0;
+    double dt = 0.01;
     double time = 0.0;
    
     ros::Rate naptime(10.0);
 
     while (ros::ok()) 
     {
-        jnt1_position.data = amplitude * sin( frequency* PI / 180* time);
-        dt++;
+        jnt1_position.data = amplitude * sin( 2 * PI * frequency * time);
+        time += dt;
         ROS_INFO("joint1_position = %f", jnt1_position.data);
         pub.publish(jnt1_position);
 	    naptime.sleep();

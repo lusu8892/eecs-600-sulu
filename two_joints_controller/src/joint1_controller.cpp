@@ -91,7 +91,7 @@ int main(int argc, char **argv) {
     get_joint_state_srv_msg.request.joint_name = "joint1";
     //double q1_des = 1.0;
     double q1_err;
-    double Kp = 10.0;
+    double Kp = 200.0;
     double Kv = 3;
     double trq_cmd;
 
