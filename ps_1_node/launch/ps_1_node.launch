@@ -1,5 +1,0 @@
-<launch> 
-<node name= "minimal_commander_class" pkg= "ps_1_node" type= "minimal_commander_class" /> 
-<node name= "minimal_simulator" pkg= "ps_1_node" type= "minimal_simulator" /> 
-<node name= "minimal_controller" pkg= "ps_1_node" type= "minimal_controller" />
-</launch> 

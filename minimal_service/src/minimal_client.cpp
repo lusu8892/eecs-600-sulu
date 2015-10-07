@@ -28,6 +28,8 @@ int main(int argc, char **argv) {
         	srv.request.frequency = frequency;
 
         	bool success = client.call(srv);
+            // This method does the actual work of locating the server node, transmitting the request
+            // data, waiting for a response, and storing the response data the Response we provided.
         	if (success) {
             	cout << "The amplitude you specified is " << srv.response.amplitude 
                      << " and the frequency you specified is " << srv.response.frequency << endl;
