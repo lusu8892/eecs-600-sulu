@@ -27,7 +27,7 @@ int main(int argc, char **argv) {
         	srv.request.amplitude = amplitude;
         	srv.request.frequency = frequency;
 
-        	bool success = client.call(srv.request, srv.response);
+        	bool success = client.call(srv);
         	if (success) {
             	cout << "The amplitude you specified is " << srv.response.amplitude 
                      << " and the frequency you specified is " << srv.response.frequency << endl;
