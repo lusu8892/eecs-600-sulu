@@ -8,15 +8,6 @@
 #include <std_msgs/Float64.h>
 #include <math.h>
 
-#include <ros/ros.h> //ALWAYS need to include this
-#include <gazebo_msgs/GetModelState.h>
-#include <gazebo_msgs/ApplyJointEffort.h>
-#include <gazebo_msgs/GetJointProperties.h>
-#include <sensor_msgs/JointState.h>
-#include <string.h>
-#include <stdio.h>  
-#include <std_msgs/Float64.h>
-#include <math.h>
 
 //a simple saturation function; provide saturation threshold, sat_val, and arg to be saturated, val
 double sat(double val, double sat_val) {
@@ -100,7 +91,7 @@ int main(int argc, char **argv) {
 	joint_state_msg.header.stamp = ros::Time::now();
 	joint_state_msg.name.push_back("joint1");
         joint_state_msg.position.push_back(0.0);
-        joint_state_msg.velocity.push_back(0.0);
+        joint_state_msg.velocity.push_back(0.0);q
     while(ros::ok()) {    
         get_jnt_state_client.call(get_joint_state_srv_msg);
         q1 = get_joint_state_srv_msg.response.position[0];
