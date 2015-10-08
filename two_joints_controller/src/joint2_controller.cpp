@@ -8,16 +8,6 @@
 #include <std_msgs/Float64.h>
 #include <math.h>
 
-#include <ros/ros.h> //ALWAYS need to include this
-#include <gazebo_msgs/GetModelState.h>
-#include <gazebo_msgs/ApplyJointEffort.h>
-#include <gazebo_msgs/GetJointProperties.h>
-#include <sensor_msgs/JointState.h>
-#include <string.h>
-#include <stdio.h>  
-#include <std_msgs/Float64.h>
-#include <math.h>
-
 //a simple saturation function; provide saturation threshold, sat_val, and arg to be saturated, val
 double sat(double val, double sat_val) {
     if (val>sat_val)
