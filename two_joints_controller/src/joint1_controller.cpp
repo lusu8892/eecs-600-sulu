@@ -91,7 +91,7 @@ int main(int argc, char **argv) {
 	joint_state_msg.header.stamp = ros::Time::now();
 	joint_state_msg.name.push_back("joint1");
         joint_state_msg.position.push_back(0.0);
-        joint_state_msg.velocity.push_back(0.0);q
+        joint_state_msg.velocity.push_back(0.0);
     while(ros::ok()) {    
         get_jnt_state_client.call(get_joint_state_srv_msg);
         q1 = get_joint_state_srv_msg.response.position[0];
