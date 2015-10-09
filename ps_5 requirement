@@ -1,0 +1,5 @@
+Modify the example trajectory action server and action client to control your 2-DOF robot.
+
+Use rqt_plot to show the joint commands to your robot and use Kazaam to make a movie of your robot moving.Submit your plots, your movie and your modified trajectory action server and action client.
+
+If you're ambitious, extend this to more joints!

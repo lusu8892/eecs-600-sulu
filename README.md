@@ -1,5 +1,5 @@
 # eecs-600-sulu
-This is the branch PS_4, which is the repo to contain ps4 assignment.
+This is the branch PS_5, which is the repo to contain ps4 assignment.
 
 The sequence about how to start the minimal_robot.
 1. For gazebo

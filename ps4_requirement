@@ -1,7 +1,0 @@
-Modify the minimal robot description to add an additional link and movable joint.
-
-Modify the minimal controller to control this 2nd joint as well.
-
-Command your robot in Gazebo to oscillate the two movable joints in sinusoids (at a different frequency for joint 1 vs joint 2).
-
-Submit all of your modified code, plus a movie (screen capture) of your robot's chaotic motion.  (You can use Kazaam for this).
