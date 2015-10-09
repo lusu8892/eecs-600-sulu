@@ -17,6 +17,8 @@ public:
 	JointController(ros::NodeHandle* nodehandle, std::string joint_number); //"main" will need to instantiate a ROS nodehandle, then pass it to the constructor
     // may choose to define public methods or public variables, if desired
     ~JointController();
+    void controller();
+    // ros::Rate* rate_timer_;
 private:
     std::string joint_num_;
 	ros::NodeHandle nh_;
@@ -37,13 +39,14 @@ private:
     bool result_;
     ros::Duration* half_sec_;
     ros::Duration* duration_;
-    ros::Rate* rate_timer_;
+    // ros::Rate* rate_timer_;
 
     std_msgs::Float64 trq_msg_;
     std_msgs::Float64 q1_msg_;
     std_msgs::Float64 q1dot_msg_;
     sensor_msgs::JointState joint_state_msg_;
 
+    int vecSize;
     double q1_;
     double q1dot_;
     double dt_;
@@ -53,12 +56,12 @@ private:
     double trq_cmd_;
     double pos_cmd_;
 
-    void checkService();
+    // void checkService();
     void initializePublishers();
     void initializeSubscribers();
     void initializeServices();
 
-    void controller();
+    // void controller();
     void posCmdCB(const std_msgs::Float64& pos_cmd_msg);
     // double sat(double val, double sat_val);
 
