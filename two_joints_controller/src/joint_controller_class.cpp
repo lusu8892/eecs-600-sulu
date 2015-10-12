@@ -1,7 +1,8 @@
 #include "joint_controller.h"
 // #include <two_joints_controller/src/joint_controller.h>
 
-JointController::JointController(ros::NodeHandle* nodehandle, std::string joint_number):nh_(*nodehandle), joint_num_(joint_number)
+JointController::JointController(ros::NodeHandle* nodehandle, std::string joint_number, double Kp, double Kv)
+                :nh_(*nodehandle), joint_num_(joint_number), Kp_(Kp), Kv_(Kv)
 {
     ROS_INFO("in class constructor of JointController");
 
@@ -32,11 +33,11 @@ JointController::JointController(ros::NodeHandle* nodehandle, std::string joint_
 	q1dot_ = 0.0;
     dt_ = 0.01;
     q1_err_ = 0.0;
-    Kp_ = 0.0;
-    Kv_ = 0.0;
+    // Kp_ = 0.0;
+    // Kv_ = 0.0;
     trq_cmd_ = 0.0;
     duration_ = new ros::Duration(dt_);
-    // rate_timer_ = new ros::Rate(1/dt_);
+    rate_timer_ = new ros::Rate(1/dt_);
 
     effort_cmd_srv_msg_.request.joint_name = joint_num_;
     ROS_INFO("joint number to request: %s", effort_cmd_srv_msg_.request.joint_name.c_str());
@@ -50,18 +51,18 @@ JointController::JointController(ros::NodeHandle* nodehandle, std::string joint_
 	joint_state_msg_.name.push_back(joint_num_);
     joint_state_msg_.position.push_back(0.0);
     joint_state_msg_.velocity.push_back(0.0);
-    vecSize = joint_state_msg_.name.size();
+    vec_size_ = joint_state_msg_.name.size();
     ROS_INFO("I am here");
-    ROS_INFO("the joint_state_msg_.name vector size: %d", vecSize);
+    ROS_INFO("the joint_state_msg_.name vector size: %d", vec_size_);
     ROS_INFO("joint number given by user: %s", joint_state_msg_.name[0].c_str());
-    // controller();
+    controller();
 
 }
 JointController::~JointController()
 {
 	delete half_sec_;
 	delete duration_;
-    // delete rate_timer_;
+    delete rate_timer_;
 }
 
 // void JointController::checkService()
@@ -122,7 +123,7 @@ void JointController::posCmdCB(const std_msgs::Float64& pos_cmd_msg)
 
 void JointController::controller()
 {
-    // while(ros::ok()) {    
+    while(ros::ok()) {    
         get_jnt_state_client_.call(get_joint_state_srv_msg_);
         q1_ = get_joint_state_srv_msg_.response.position[0];
         q1_msg_.data = q1_;
@@ -159,9 +160,9 @@ void JointController::controller()
         result_ = effort_cmd_srv_msg_.response.success;
         if (!result_)
             ROS_WARN("service call to apply_joint_effort failed!");
-        // ros::spinOnce();
-        // rate_timer_->sleep();
-    // }
+        ros::spinOnce();
+        rate_timer_->sleep();
+    }
 }
 
 int main(int argc, char **argv) {
@@ -170,21 +171,22 @@ int main(int argc, char **argv) {
     // ros::NodeHandle nh1;
     // ros::NodeHandle nh2;
     ros::Rate rate_timer(1/0.01);
-    JointController jointController1(&nh, "joint1");
+    JointController jointController1(&nh, "joint1", 5, 3);
     ROS_INFO("one JointController object instantiated");
 
-    JointController jointController2(&nh, "joint2");
-    ROS_INFO("two JointController objects instantiated");
+    // JointController jointController2(&nh, "joint2", 5, 3);
+    // ROS_INFO("two JointController objects instantiated");
     // JointController jointController1(&nh1, "joint1");
     // JointController jointController2(&nh2, "joint2");
-    while(ros::ok()){
+    // while(ros::ok()){
 
-        jointController1.controller();
-        jointController2.controller();
-        rate_timer.sleep();
-        ros::spinOnce();
+    //     // jointController1.controller();
+    //     ros::spinOnce();
 
-    }
+    //     // jointController2.controller();
+    //     rate_timer.sleep();
+        
+    // }
 
     return 0;
 }
