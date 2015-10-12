@@ -76,7 +76,7 @@ int MinimalActionClientClass::actonClientMem()
     	cout << "Please enter the value of amplitude, frequency, and cycles: ";
 		cin >> goal_.amplitude_input >> goal_.frequency_input >> goal_.cycles_input;
     	while(true) {
-            if (abs(goal_.cycles_input - cycles_get_back_) <= 0.001) {
+            if (abs(goal_.cycles_input - cycles_get_back_) <= 0.01) {
                 goal_.amplitude_input = 0.0;
                 goal_.frequency_input = 0.0;
                 goal_.cycles_input = 0.0;
