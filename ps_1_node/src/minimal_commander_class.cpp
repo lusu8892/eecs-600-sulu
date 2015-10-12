@@ -105,25 +105,31 @@ void MinimalCommanderClass::executeActionCB(const actionlib::SimpleActionServer<
     if (cycles_.data < goal -> cycles_input) {
         velProfileGen();
         ROS_INFO("Current phase = %f;", c_phi_);
-        action_server_.setSucceeded(result_); // tell the client we have given up on this goal; send the result message as well
+        // action_server_.setSucceeded(result_); // tell the client we have given up on this goal; send the result message as well
         if (c_phi_ - p_phi_ >= 2*PI){
             p_phi_ = c_phi_;
             cycles_.data += 1.0;
         }
     }
     else {
-        amplitude_.data = 0.0;
-        frequency_.data = 0.0;
-        cycles_.data = 0.0;
         result_.amplitude_output = amplitude_.data;
         result_.frequency_output = frequency_.data;
         result_.cycles_output = cycles_.data;
+        // amplitude_.data = 0.0;
+        // frequency_.data = 0.0;
+        // cycles_.data = 0.0;
         result_.outcome = "goal is completed, the amplitude, frequency, and cycles are set to zero";
         velProfileGen();
         // time_ = 0.0; // time_ is set to zero
         action_server_.setSucceeded(result_);
     }
     
+    result_.cycles_output = cycles_.data;
+
+    if (amplitude_.data == 0.0 && frequency_.data == 0.0) {
+        cycles_.data = -1.0;
+    }
+
     ROS_WARN("informing client of aborted goal");
     action_server_.setAborted(result_); // tell the client we have given up on this goal; send the result message as well
 }
