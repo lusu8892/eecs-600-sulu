@@ -14,7 +14,7 @@
 class JointController
 {
 public:
-	JointController(ros::NodeHandle* nodehandle, std::string joint_number, double Kp, double Kv); //"main" will need to instantiate a ROS nodehandle, then pass it to the constructor
+	JointController(ros::NodeHandle* nodehandle, const std::string joint_number, double Kp, double Kv); //"main" will need to instantiate a ROS nodehandle, then pass it to the constructor
     // may choose to define public methods or public variables, if desired
     ~JointController();
     void controller();
@@ -40,7 +40,7 @@ private:
     ros::Duration* half_sec_;
     ros::Duration* duration_;
     ros::Rate* rate_timer_;
-    
+
     std_msgs::Float64 trq_msg_;
     std_msgs::Float64 q1_msg_;
     std_msgs::Float64 q1dot_msg_;

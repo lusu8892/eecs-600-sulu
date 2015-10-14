@@ -1,7 +1,7 @@
 #include "joint_controller.h"
 // #include <two_joints_controller/src/joint_controller.h>
 
-JointController::JointController(ros::NodeHandle* nodehandle, std::string joint_number, double Kp, double Kv)
+JointController::JointController(ros::NodeHandle* nodehandle, const std::string joint_number, double Kp, double Kv)
                 :nh_(*nodehandle), joint_num_(joint_number), Kp_(Kp), Kv_(Kv)
 {
     ROS_INFO("in class constructor of JointController");
@@ -55,7 +55,7 @@ JointController::JointController(ros::NodeHandle* nodehandle, std::string joint_
     ROS_INFO("I am here");
     ROS_INFO("the joint_state_msg_.name vector size: %d", vec_size_);
     ROS_INFO("joint number given by user: %s", joint_state_msg_.name[0].c_str());
-            ros::spinOnce();
+    // ros::spinOnce();
 
     // controller();
 
@@ -125,9 +125,18 @@ void JointController::posCmdCB(const std_msgs::Float64& pos_cmd_msg)
 
 void JointController::controller()
 {
-    // while(ros::ok()) {    
-        get_jnt_state_client_.call(get_joint_state_srv_msg_);
+    // while(ros::ok()) {
+        while (!get_jnt_state_client_.call(get_joint_state_srv_msg_))
+        {
+            get_jnt_state_client_.call(get_joint_state_srv_msg_);
+            ROS_INFO("The result for calling get_joint_state_srv_msg_: %d", get_jnt_state_client_.call(get_joint_state_srv_msg_));
+            ros::Duration(2.0).sleep();
+        }
+
+
+        // get_jnt_state_client_.call(get_joint_state_srv_msg_);
         q1_ = get_joint_state_srv_msg_.response.position[0];
+        ROS_INFO("q1_ = %f", get_joint_state_srv_msg_.response.position[0]);
         q1_msg_.data = q1_;
         position_pub_.publish(q1_msg_);
         
@@ -173,7 +182,7 @@ int main(int argc, char **argv) {
     // ros::NodeHandle nh1;
     // ros::NodeHandle nh2;
     ros::Rate rate_timer(1/0.01);
-    JointController jointController1(&nh, "joint1", 5, 3);
+    JointController jointController1(&nh, "joint1", 5.0, 3.0);
     ROS_INFO("one JointController object instantiated");
 
     // JointController jointController2(&nh, "joint2", 5, 3);
@@ -182,10 +191,10 @@ int main(int argc, char **argv) {
     // JointController jointController2(&nh2, "joint2");
     while(ros::ok()){
         ROS_INFO("starting to roll");
-        ros::spinOnce();
+        // ros::spinOnce();
         ROS_INFO("callback function should start to be calledback");
         jointController1.controller();
-        // ros::spinOnce();
+        ros::spinOnce();
         ROS_INFO("controller running");
         // jointController2.controller();
         rate_timer.sleep();
