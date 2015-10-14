@@ -14,7 +14,7 @@ public:
     MinimalCommanderClass(ros::NodeHandle* nodehandle); //"main" will need to instantiate a ROS nodehandle, then pass it to the constructor
     // may choose to define public methods or public variables, if desired
     ~MinimalCommanderClass();
-    void velProfileGen(); // this is a member function which is used to generate velocity profile and then publish it to the topic "vel_cmd"
+    // void velProfileGen(); // this is a member function which is used to generate velocity profile and then publish it to the topic "vel_cmd"
 private:
     // put private member data here;  "private" data will only be available to member functions of this class;
     ros::NodeHandle nh_; // we will need this, to pass between "main" and constructor
@@ -36,7 +36,8 @@ private:
     // member methods as well:
     void initializePublishers();
     void initializeServices();
-    
+
+    void velProfileGen();
     //prototype for callback for example service
     bool serviceCallback(minimal_service::minimal_server_msgRequest& request, minimal_service::minimal_server_msgResponse& response);
     
@@ -48,7 +49,7 @@ MinimalCommanderClass::MinimalCommanderClass(ros::NodeHandle* nodehandle):nh_(*n
     // package up the messy work of creating subscribers; do this overhead in constructor
     initializePublishers();
     initializeServices();
-    
+    // velProfileGen();
     //initialize variables here, as needed
     vel_cmd_.data = 0.0; 
     // amplitute_.data = 0.0;
@@ -58,7 +59,8 @@ MinimalCommanderClass::MinimalCommanderClass(ros::NodeHandle* nodehandle):nh_(*n
     time_ = 0.0;
     num_count_ = 0;
     naptime_ = new ros::Rate(sample_rate_); // use to regulate loop rate
-    time_now_ = ros::Time::now().toSec(); 
+    time_now_ = ros::Time::now().toSec();
+    velProfileGen();
 
     // can also do tests/waits to make sure all required services, topics, etc are alive
 }
@@ -121,6 +123,6 @@ int main(int argc, char **argv) {
     
     MinimalCommanderClass minimalCommanderClass(&nh);
 
-    minimalCommanderClass.velProfileGen();
+    // minimalCommanderClass.velProfileGen();
     return 0; // should never get here, unless roscore dies 
 }
