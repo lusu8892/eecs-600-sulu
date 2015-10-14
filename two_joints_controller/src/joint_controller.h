@@ -40,7 +40,7 @@ private:
     ros::Duration* half_sec_;
     ros::Duration* duration_;
     ros::Rate* rate_timer_;
-
+    
     std_msgs::Float64 trq_msg_;
     std_msgs::Float64 q1_msg_;
     std_msgs::Float64 q1dot_msg_;

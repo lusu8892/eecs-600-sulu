@@ -2,13 +2,13 @@
 
 <include file ="$(find gazebo_ros)/launch/empty_world.launch"/>
 
-<!--rosrun gazebo_ros spawn_model  -file two_links_robot_description.urdf -urdf -model two_DOF_robot-->
+<!--rosrun gazebo_ros spawn_model  -file two_joints_robot_description.urdf -urdf -model two_DOF_robot-->
   <!-- spawn robot in gazebo -->
-  <node name="spawn_robot" pkg="gazebo_ros" type="spawn_model" args="-file $(find two_links_robot_description)/two_links_robot_description.urdf -urdf -model two_DOF_robot"/>
+  <node name="spawn_robot" pkg="gazebo_ros" type="spawn_model" args="-file $(find two_joints_robot_description)/two_joints_robot_description.urdf -urdf -model two_DOF_robot"/>
 
   <!-- send robot urdf to param server -->
 <param name="robot_description" 
-textfile="$(find two_links_robot_description)/two_links_robot_description.urdf"/>
+textfile="$(find two_joints_robot_description)/two_joints_robot_description.urdf"/>
 
 <!-- rosrun two_joints_controller joint1_controller joint2_controller joint1_position_commander joint2_position_commander -->
 <node pkg="two_joints_controller" type="joint1_controller" name="joint1_controller"/>

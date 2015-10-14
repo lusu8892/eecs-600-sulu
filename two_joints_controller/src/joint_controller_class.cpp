@@ -55,7 +55,9 @@ JointController::JointController(ros::NodeHandle* nodehandle, std::string joint_
     ROS_INFO("I am here");
     ROS_INFO("the joint_state_msg_.name vector size: %d", vec_size_);
     ROS_INFO("joint number given by user: %s", joint_state_msg_.name[0].c_str());
-    controller();
+            ros::spinOnce();
+
+    // controller();
 
 }
 JointController::~JointController()
@@ -123,7 +125,7 @@ void JointController::posCmdCB(const std_msgs::Float64& pos_cmd_msg)
 
 void JointController::controller()
 {
-    while(ros::ok()) {    
+    // while(ros::ok()) {    
         get_jnt_state_client_.call(get_joint_state_srv_msg_);
         q1_ = get_joint_state_srv_msg_.response.position[0];
         q1_msg_.data = q1_;
@@ -160,9 +162,9 @@ void JointController::controller()
         result_ = effort_cmd_srv_msg_.response.success;
         if (!result_)
             ROS_WARN("service call to apply_joint_effort failed!");
-        ros::spinOnce();
-        rate_timer_->sleep();
-    }
+        // ros::spinOnce();
+        // rate_timer_->sleep();
+    // }
 }
 
 int main(int argc, char **argv) {
@@ -178,15 +180,17 @@ int main(int argc, char **argv) {
     // ROS_INFO("two JointController objects instantiated");
     // JointController jointController1(&nh1, "joint1");
     // JointController jointController2(&nh2, "joint2");
-    // while(ros::ok()){
-
-    //     // jointController1.controller();
-    //     ros::spinOnce();
-
-    //     // jointController2.controller();
-    //     rate_timer.sleep();
+    while(ros::ok()){
+        ROS_INFO("starting to roll");
+        ros::spinOnce();
+        ROS_INFO("callback function should start to be calledback");
+        jointController1.controller();
+        // ros::spinOnce();
+        ROS_INFO("controller running");
+        // jointController2.controller();
+        rate_timer.sleep();
         
-    // }
+    }
 
     return 0;
 }
