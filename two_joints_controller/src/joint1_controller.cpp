@@ -62,7 +62,7 @@ int main(int argc, char **argv) {
     ros::Publisher trq_publisher = nh.advertise<std_msgs::Float64>("joint1_trq", 1); 
     ros::Publisher vel_publisher = nh.advertise<std_msgs::Float64>("joint1_vel", 1);     
     ros::Publisher pos_publisher = nh.advertise<std_msgs::Float64>("joint1_pos", 1);  
-    ros::Publisher joint_state_publisher = nh.advertise<sensor_msgs::JointState>("joint1_states", 1); 
+    ros::Publisher joint_state_publisher = nh.advertise<sensor_msgs::JointState>("joint_states", 1); 
 
     ros::Subscriber pos_cmd_subscriber = nh.subscribe("joint1_pos_cmd",1,posCmdCB); 
      

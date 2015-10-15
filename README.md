@@ -1,26 +1,10 @@
 # eecs-600-sulu
-This is the branch PS_5, which is the repo to contain ps4 assignment.
+This is the branch PS_5, which is the repo to contain ps5 assignment.
 
-The sequence about how to start the minimal_robot.
-1. For gazebo
+The sequence about how to start the two joints robot.
 
-	rosrun gazebo_ros gazebo
+"roslaunch two_joints_controller two_joints_robot.launch"
 
-	" navigate to the folder "minimal_robot_description", then enter the following in terminal "
+"rosrun joints_trajectory joints_trajectory_action_client"
 
-	roscd minimal_robot_description
-
-	rosrun gazebo_ros spawn_model -file minimal_robot_description.urdf -urdf -model one_DOF_robot
-
-	rosrun minimal_joint_controller minimal_joint_controller
-
-	rostopic pub pos_cmd std_msgs/Float64 1.0
-
-2. For Rviz
-	
-	rosrun rviz rviz
-
-	roslaunch minimal_robot_description minimal_robot_description.launch
-
-	rosrun robot_state_publisher robot_state_publisher
-
+"rosrun joints_trajectory joints_trajectory_action_server"

@@ -14,7 +14,7 @@
 class JointController
 {
 public:
-	JointController(ros::NodeHandle* nodehandle, const std::string joint_number, double Kp, double Kv); //"main" will need to instantiate a ROS nodehandle, then pass it to the constructor
+	JointController(ros::NodeHandle* nodehandle, std::string joint_number, double Kp, double Kv); //"main" will need to instantiate a ROS nodehandle, then pass it to the constructor
     // may choose to define public methods or public variables, if desired
     ~JointController();
     void controller();
@@ -56,12 +56,11 @@ private:
     double trq_cmd_;
     double pos_cmd_;
 
-    // void checkService();
+    void checkService();
     void initializePublishers();
     void initializeSubscribers();
     void initializeServices();
 
-    // void controller();
     void posCmdCB(const std_msgs::Float64& pos_cmd_msg);
     // double sat(double val, double sat_val);
 
