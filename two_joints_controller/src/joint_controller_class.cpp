@@ -6,8 +6,13 @@ JointController::JointController(ros::NodeHandle* nodehandle, std::string joint_
 {
     ROS_INFO("in class constructor of JointController");
     service_ready_ = false;
+    half_sec_ = new ros::Duration(0.5);
     checkService();
 
+    initializePublishers();
+    initializeSubscribers();
+    initializeServices();
+    
 	q1_ = 0.0;
 	q1dot_ = 0.0;
     dt_ = 0.01;
@@ -22,6 +27,8 @@ JointController::JointController(ros::NodeHandle* nodehandle, std::string joint_
     effort_cmd_srv_msg_.request.effort = 0.0;
     effort_cmd_srv_msg_.request.duration = *duration_;
 
+    ROS_INFO_STREAM(effort_cmd_srv_msg_.request.duration);
+
     get_joint_state_srv_msg_.request.joint_name = joint_num_;
 
     joint_state_msg_.header.stamp = ros::Time::now();
@@ -34,6 +41,7 @@ JointController::JointController(ros::NodeHandle* nodehandle, std::string joint_
     ROS_INFO("joint number given by user: %s", joint_state_msg_.name[0].c_str());
     // controller();
 }
+
 JointController::~JointController()
 {
 	delete half_sec_;
@@ -71,16 +79,16 @@ void JointController::initializeServices()
 void JointController::initializePublishers()
 {
     ROS_INFO("initializing publishers");
-	torque_pub_ = nh_.advertise<std_msgs::Float64>(joint_num_.c_str()+"_trq", 1, true); 
-    velocity_pub_ = nh_.advertise<std_msgs::Float64>(joint_num_.c_str()+"_vel", 1, true);     
-    position_pub_ = nh_.advertise<std_msgs::Float64>(joint_num_.c_str()+"_pos", 1, true);  
-    joint_state_pub_ = nh_.advertise<sensor_msgs::JointState>(joint_num_.c_str()+"_states", 1, true); 
+	torque_pub_ = nh_.advertise<std_msgs::Float64>(joint_num_+"_trq", 1, true); 
+    velocity_pub_ = nh_.advertise<std_msgs::Float64>(joint_num_+"_vel", 1, true);     
+    position_pub_ = nh_.advertise<std_msgs::Float64>(joint_num_+"_pos", 1, true);  
+    joint_state_pub_ = nh_.advertise<sensor_msgs::JointState>("joint_states", 1, true); 
 }
 
 void JointController::initializeSubscribers()
 {
     ROS_INFO("initializing subscribers");
-    pos_cmd_sub_ = nh_.subscribe(joint_num_.c_str()+"_pos_cmd",1,&JointController::posCmdCB,this); 
+    pos_cmd_sub_ = nh_.subscribe(joint_num_+"_pos_cmd",1,&JointController::posCmdCB,this); 
 }
 
 
