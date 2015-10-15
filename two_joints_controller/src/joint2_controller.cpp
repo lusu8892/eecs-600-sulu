@@ -81,8 +81,8 @@ int main(int argc, char **argv) {
     get_joint_state_srv_msg.request.joint_name = "joint2";
     //double q1_des = 1.0;
     double q1_err;
-    double Kp = 10.0;
-    double Kv = 3;
+    double Kp = 5.0;
+    double Kv = 3.0;
     double trq_cmd;
 
     // set up the joint_state_msg fields to define a single joint,
@@ -94,6 +94,7 @@ int main(int argc, char **argv) {
     while(ros::ok()) {    
         get_jnt_state_client.call(get_joint_state_srv_msg);
         q1 = get_joint_state_srv_msg.response.position[0];
+        ROS_INFO("q1 = %f", get_joint_state_srv_msg.response.position[0]);
         q1_msg.data = q1;
         pos_publisher.publish(q1_msg);
         
@@ -101,11 +102,11 @@ int main(int argc, char **argv) {
         q1dot_msg.data = q1dot;
         vel_publisher.publish(q1dot_msg);
 
-	joint_state_msg.header.stamp = ros::Time::now();
+	    joint_state_msg.header.stamp = ros::Time::now();
         joint_state_msg.position[0] = q1; 
         joint_state_msg.velocity[0] = q1dot;
 
-	joint_state_publisher.publish(joint_state_msg);
+	    joint_state_publisher.publish(joint_state_msg);
         
         //ROS_INFO("q1 = %f;  q1dot = %f",q1,q1dot);
         //watch for periodicity

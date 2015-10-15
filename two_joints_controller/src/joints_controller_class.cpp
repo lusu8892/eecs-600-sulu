@@ -1,25 +1,24 @@
-#include "joint_controller.h"
+#include "joints_controller.h"
 // #include <two_joints_controller/src/joint_controller.h>
 
-JointController::JointController(ros::NodeHandle* nodehandle, std::string joint_number, double Kp, double Kv)
+JointsController::JointsController(ros::NodeHandle* nodehandle, std::string joint_number, double Kp, double Kv)
                 :nh_(*nodehandle), joint_num_(joint_number), Kp_(Kp), Kv_(Kv)
 {
-    ROS_INFO("in class constructor of JointController");
-    service_ready_ = false;
-    half_sec_ = new ros::Duration(0.5);
+    ROS_INFO("in class constructor of JointsController");
+
     checkService();
 
     initializePublishers();
     initializeSubscribers();
     initializeServices();
-    
+
 	q1_ = 0.0;
 	q1dot_ = 0.0;
     dt_ = 0.01;
     q1_err_ = 0.0;
     trq_cmd_ = 0.0;
     duration_ = new ros::Duration(dt_);
-    rate_timer_ = new ros::Rate(1/dt_);
+    // rate_timer_ = new ros::Rate(1/dt_);
 
     effort_cmd_srv_msg_.request.joint_name = joint_num_;
     ROS_INFO("joint number to request: %s", effort_cmd_srv_msg_.request.joint_name.c_str());
@@ -42,19 +41,22 @@ JointController::JointController(ros::NodeHandle* nodehandle, std::string joint_
     // controller();
 }
 
-JointController::~JointController()
+JointsController::~JointsController()
 {
-	delete half_sec_;
+	// delete half_sec_;
 	delete duration_;
-    delete rate_timer_;
+    // delete rate_timer_;
 }
 
-void JointController::checkService()
+void JointsController::checkService()
 {
+    bool service_ready_ = false;
+    ros::Duration half_sec_(0.5);
+
 	while (!service_ready_) {
       service_ready_ = ros::service::exists("/gazebo/apply_joint_effort",true);
       ROS_INFO("waiting for apply_joint_effort service");
-      half_sec_ -> sleep();
+      half_sec_.sleep();
     }
     ROS_INFO("apply_joint_effort service exists");
 
@@ -62,12 +64,12 @@ void JointController::checkService()
     while (!service_ready_) {
       service_ready_ = ros::service::exists("/gazebo/get_joint_properties",true);
       ROS_INFO("waiting for /gazebo/get_joint_properties service");
-      half_sec_ -> sleep();
+      half_sec_.sleep();
     }
     ROS_INFO("/gazebo/get_joint_properties service exists");
 }
 
-void JointController::initializeServices()
+void JointsController::initializeServices()
 {
     ROS_INFO("initializing service clients");
 	set_trq_client_ = 
@@ -76,7 +78,7 @@ void JointController::initializeServices()
        nh_.serviceClient<gazebo_msgs::GetJointProperties>("/gazebo/get_joint_properties");
 }
 
-void JointController::initializePublishers()
+void JointsController::initializePublishers()
 {
     ROS_INFO("initializing publishers");
 	torque_pub_ = nh_.advertise<std_msgs::Float64>(joint_num_+"_trq", 1, true); 
@@ -85,27 +87,30 @@ void JointController::initializePublishers()
     joint_state_pub_ = nh_.advertise<sensor_msgs::JointState>("joint_states", 1, true); 
 }
 
-void JointController::initializeSubscribers()
+void JointsController::initializeSubscribers()
 {
     ROS_INFO("initializing subscribers");
-    pos_cmd_sub_ = nh_.subscribe(joint_num_+"_pos_cmd",1,&JointController::posCmdCB,this); 
+    pos_cmd_sub_ = nh_.subscribe(joint_num_+"_pos_cmd",1,&JointsController::posCmdCB,this); 
 }
 
 
-void JointController::posCmdCB(const std_msgs::Float64& pos_cmd_msg)
+void JointsController::posCmdCB(const std_msgs::Float64& pos_cmd_msg)
 {
 	ROS_INFO("received value of pos_cmd is: %f",pos_cmd_msg.data); 
   	pos_cmd_ = pos_cmd_msg.data;
 }
-// double JointController::sat(double val, double sat_val)
+// double JointsController::sat(double val, double sat_val)
 // {
 
 // }
 
-void JointController::controller()
+void JointsController::controller()
 {
     // while(ros::ok()) {
-        while (!get_jnt_state_client_.call(get_joint_state_srv_msg_))
+    // If the service call succeeded, call() will return true and the value in srv.response 
+    // will be valid. If the call did not succeed,  call() will return false 
+    // and the value in srv.response will be invalid.         
+    while (!get_jnt_state_client_.call(get_joint_state_srv_msg_))
         {
             get_jnt_state_client_.call(get_joint_state_srv_msg_);
             ROS_INFO("The result for calling get_joint_state_srv_msg_: %d", get_jnt_state_client_.call(get_joint_state_srv_msg_));
@@ -160,23 +165,21 @@ int main(int argc, char **argv) {
     // ros::NodeHandle nh1;
     // ros::NodeHandle nh2;
     ros::Rate rate_timer(1/0.01);
-    JointController jointController1(&nh, "joint1", 5.0, 3.0);
-    ROS_INFO("one JointController object instantiated");
+    JointsController jointsController1(&nh, "joint1", 50.0, 3.0);
+    ROS_INFO("one JointsController object instantiated");
 
-    // JointController jointController2(&nh, "joint2", 5, 3);
-    // ROS_INFO("two JointController objects instantiated");
-    // JointController jointController1(&nh1, "joint1");
-    // JointController jointController2(&nh2, "joint2");
+    JointsController jointsController2(&nh, "joint2", 5.0, 3.0);
+    ROS_INFO("two JointsController objects instantiated");
+    // JointsController jointsController1(&nh1, "joint1");
+    // JointsController jointsController2(&nh2, "joint2");
     while(ros::ok()){
         ROS_INFO("starting to roll");
-        // ros::spinOnce();
-        ROS_INFO("callback function should start to be calledback");
-        jointController1.controller();
-        ros::spinOnce();
-        ROS_INFO("controller running");
-        // jointController2.controller();
-        rate_timer.sleep();
         
+        jointsController1.controller();
+        jointsController2.controller();
+        
+        ros::spinOnce();
+        rate_timer.sleep();
     }
 
     return 0;

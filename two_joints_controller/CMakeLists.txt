@@ -132,7 +132,8 @@ add_executable(joint2_controller src/joint2_controller.cpp)
 add_executable(joint1_controller src/joint1_controller.cpp)
 add_executable(joint2_position_commander src/joint2_position_commander.cpp)
 add_executable(joint1_position_commander src/joint1_position_commander.cpp)
-add_executable(joint_controller_class src/joint_controller_class.cpp)
+add_executable(joints_controller_class src/joints_controller_class.cpp)
+add_executable(joints_position_commander_class src/joints_position_commander_class.cpp)
 
 ## Add cmake target dependencies of the executable
 ## same as for the library above
@@ -143,7 +144,8 @@ target_link_libraries(joint2_controller ${catkin_LIBRARIES})
 target_link_libraries(joint1_controller ${catkin_LIBRARIES})
 target_link_libraries(joint2_position_commander ${catkin_LIBRARIES})
 target_link_libraries(joint1_position_commander ${catkin_LIBRARIES})
-target_link_libraries(joint_controller_class ${catkin_LIBRARIES})
+target_link_libraries(joints_controller_class ${catkin_LIBRARIES})
+target_link_libraries(joints_position_commander_class ${catkin_LIBRARIES})
 
 #############
 ## Install ##

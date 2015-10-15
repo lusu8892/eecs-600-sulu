@@ -13,6 +13,8 @@ textfile="$(find two_joints_robot_description)/two_joints_robot_description.urdf
 <!-- rosrun two_joints_controller joint1_controller joint2_controller joint1_position_commander joint2_position_commander -->
 <node pkg="two_joints_controller" type="joint1_controller" name="joint1_controller"/>
 <node pkg="two_joints_controller" type="joint2_controller" name="joint2_controller"/>
+<node pkg="two_joints_controller" type="joint1_position_commander" name="joint1_position_commander"/>
+<node pkg="two_joints_controller" type="joint2_position_commander" name="joint2_position_commander"/>
 
 
 <node pkg="robot_state_publisher" type="robot_state_publisher" name="robot_state_publisher"/>

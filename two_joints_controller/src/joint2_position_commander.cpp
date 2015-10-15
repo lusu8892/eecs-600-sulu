@@ -13,7 +13,7 @@ int main(int argc, char **argv) {
     std_msgs::Float64 jnt2_position;
 
     double amplitude = 0.5;
-    double frequency = 20.0;
+    double frequency = 5.0;
     double dt = 0.01;
     double time = 0.0;
    

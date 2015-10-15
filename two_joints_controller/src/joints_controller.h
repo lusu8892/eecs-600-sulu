@@ -1,5 +1,5 @@
-#ifndef JOINT_CONTROLLER_CLASS_H_
-#define JOINT_CONTROLLER_CLASS_H_
+#ifndef JOINTS_CONTROLLER_CLASS_H_
+#define JOINTS_CONTROLLER_CLASS_H_
 
 #include <ros/ros.h> //ALWAYS need to include this
 #include <gazebo_msgs/GetModelState.h>
@@ -11,12 +11,12 @@
 #include <std_msgs/Float64.h>
 #include <math.h>
 
-class JointController
+class JointsController
 {
 public:
-	JointController(ros::NodeHandle* nodehandle, std::string joint_number, double Kp, double Kv); //"main" will need to instantiate a ROS nodehandle, then pass it to the constructor
+	JointsController(ros::NodeHandle* nodehandle, std::string joint_number, double Kp, double Kv); //"main" will need to instantiate a ROS nodehandle, then pass it to the constructor
     // may choose to define public methods or public variables, if desired
-    ~JointController();
+    ~JointsController();
     void controller();
     // ros::Rate* rate_timer_;
 private:
@@ -35,11 +35,11 @@ private:
 	gazebo_msgs::ApplyJointEffort effort_cmd_srv_msg_;
     gazebo_msgs::GetJointProperties get_joint_state_srv_msg_;
 
-    bool service_ready_;
+    // bool service_ready_;
     bool result_;
-    ros::Duration* half_sec_;
+    // ros::Duration* half_sec_;
     ros::Duration* duration_;
-    ros::Rate* rate_timer_;
+    // ros::Rate* rate_timer_;
 
     std_msgs::Float64 trq_msg_;
     std_msgs::Float64 q1_msg_;
