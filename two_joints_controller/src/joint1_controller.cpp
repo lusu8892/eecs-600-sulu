@@ -132,6 +132,6 @@ int main(int argc, char **argv) {
         if (!result)
             ROS_WARN("service call to apply_joint_effort failed!");
         ros::spinOnce();
-	rate_timer.sleep();
+	    rate_timer.sleep();
   }
 }
