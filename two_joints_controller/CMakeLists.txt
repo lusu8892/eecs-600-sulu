@@ -8,6 +8,7 @@ find_package(catkin REQUIRED COMPONENTS
   catkin_simple
   roscpp
   std_msgs
+  roslint
 )
 
 ## System dependencies are found with CMake's conventions
@@ -194,3 +195,4 @@ target_link_libraries(joints_position_commander_class ${catkin_LIBRARIES})
 
 ## Add folders to be run by python nosetests
 # catkin_add_nosetests(test)
+roslint_cpp()
