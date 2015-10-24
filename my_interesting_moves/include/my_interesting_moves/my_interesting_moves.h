@@ -6,6 +6,7 @@
 #ifndef MY_INTERESTING_MOVES_H_
 #define MY_INTERESTING_MOVES_H_
 
+
 #include <ros/ros.h>
 #include <std_msgs/Float64.h>
 #include <vector>
@@ -35,16 +36,18 @@ const double q5dotmax = 1;
 const double q6dotmax = 1;
 const double dt_traj = 0.01; // time step for trajectory interpolation
 const double SPEED_SCALE_FACTOR= 0.5; // go this fraction of speed from above maxes
+const double PI = 3.141592653;
 
 class MyInsterestingMoves
 {
 public:
     MyInsterestingMoves(ros::NodeHandle* nodehandle);
 
-    void rightArmSinMove(std::vector<Eigen::VectorXd> qvecs, trajectory_msgs::JointTrajectory &trajectory);
-    void rightArmSaluteMove(std::vector<Eigen::VectorXd> qvecs, trajectory_msgs::JointTrajectory &trajectory);
-    void rightArmZigzagMove(std::vector<Eigen::VectorXd> qvecs, trajectory_msgs::JointTrajectory &trajectory);
-    void rightArmComeOnMove(std::vector<Eigen::VectorXd> qvecs, trajectory_msgs::JointTrajectory &trajectory);
+    void rightArmZeroConfig(std::vector<Eigen::VectorXd> qvecs, trajectory_msgs::JointTrajectory &new_trajectory, double &final_time);
+    void rightArmSinMove(std::vector<Eigen::VectorXd> qvecs, trajectory_msgs::JointTrajectory &new_trajectory, double &final_time);
+    void rightArmSaluteMove(std::vector<Eigen::VectorXd> qvecs, trajectory_msgs::JointTrajectory &new_trajectory, double &final_time);
+    void rightArmZigzagMove(std::vector<Eigen::VectorXd> qvecs, trajectory_msgs::JointTrajectory &new_trajectory, double &final_time);
+    void rightArmComeOnMove(std::vector<Eigen::VectorXd> qvecs, trajectory_msgs::JointTrajectory &new_trajectory, double &final_time);
     Vectorq7x1 getQvecRigthArm();
     sensor_msgs::JointState get_joint_states();
 

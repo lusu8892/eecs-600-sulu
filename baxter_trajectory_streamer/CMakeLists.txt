@@ -1,21 +1,16 @@
 cmake_minimum_required(VERSION 2.8.3)
-project(my_interesting_moves)
+project(baxter_trajectory_streamer)
 
 ## Find catkin macros and libraries
 ## if COMPONENTS list like find_package(catkin REQUIRED COMPONENTS xyz)
 ## is used, also find other catkin packages
 find_package(catkin REQUIRED COMPONENTS
+  actionlib
   cmake_modules
+  my_interesting_moves
   roscpp
   std_msgs
 )
-
-find_package(cmake_modules REQUIRED)
-find_package(Eigen3 REQUIRED)
-
-include_directories(${EIGEN3_INCLUDE_DIR})
-add_definitions(${EIGEN_DEFINITIONS})
-
 
 ## System dependencies are found with CMake's conventions
 # find_package(Boost REQUIRED COMPONENTS system)
@@ -108,8 +103,8 @@ add_definitions(${EIGEN_DEFINITIONS})
 ## DEPENDS: system dependencies of this project that dependent projects also need
 catkin_package(
 #  INCLUDE_DIRS include
-#  LIBRARIES my_interesting_moves
-#  CATKIN_DEPENDS cmake_modules roscpp std_msgs
+#  LIBRARIES baxter_trajectory_streamer
+#  CATKIN_DEPENDS actionlib cmake_modules my_interesting_moves roscpp std_msgs
 #  DEPENDS system_lib
 )
 
@@ -125,24 +120,24 @@ include_directories(
 )
 
 ## Declare a C++ library
-# add_library(my_interesting_moves
-#   src/${PROJECT_NAME}/my_interesting_moves.cpp
+# add_library(baxter_trajectory_streamer
+#   src/${PROJECT_NAME}/baxter_trajectory_streamer.cpp
 # )
 
 ## Add cmake target dependencies of the library
 ## as an example, code may need to be generated before libraries
 ## either from message generation or dynamic reconfigure
-# add_dependencies(my_interesting_moves ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
+# add_dependencies(baxter_trajectory_streamer ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
 
 ## Declare a C++ executable
-# add_executable(my_interesting_moves_node src/my_interesting_moves_node.cpp)
+# add_executable(baxter_trajectory_streamer_node src/baxter_trajectory_streamer_node.cpp)
 
 ## Add cmake target dependencies of the executable
 ## same as for the library above
-# add_dependencies(my_interesting_moves_node ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
+# add_dependencies(baxter_trajectory_streamer_node ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
 
 ## Specify libraries to link a library or executable target against
-# target_link_libraries(my_interesting_moves_node
+# target_link_libraries(baxter_trajectory_streamer_node
 #   ${catkin_LIBRARIES}
 # )
 
@@ -161,7 +156,7 @@ include_directories(
 # )
 
 ## Mark executables and/or libraries for installation
-# install(TARGETS my_interesting_moves my_interesting_moves_node
+# install(TARGETS baxter_trajectory_streamer baxter_trajectory_streamer_node
 #   ARCHIVE DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
 #   LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
 #   RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
@@ -186,7 +181,7 @@ include_directories(
 #############
 
 ## Add gtest based cpp test target and link libraries
-# catkin_add_gtest(${PROJECT_NAME}-test test/test_my_interesting_moves.cpp)
+# catkin_add_gtest(${PROJECT_NAME}-test test/test_baxter_trajectory_streamer.cpp)
 # if(TARGET ${PROJECT_NAME}-test)
 #   target_link_libraries(${PROJECT_NAME}-test ${PROJECT_NAME})
 # endif()
