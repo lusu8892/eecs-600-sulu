@@ -43,13 +43,14 @@ class MyInsterestingMoves
 public:
     MyInsterestingMoves(ros::NodeHandle* nodehandle);
 
+    void stuffTrajectory(std::vector<Eigen::VectorXd> qvecs, trajectory_msgs::JointTrajectory &new_trajectory, double &final_time);
     void rightArmZeroConfig(std::vector<Eigen::VectorXd> qvecs, trajectory_msgs::JointTrajectory &new_trajectory, double &final_time);
     void rightArmSinMove(std::vector<Eigen::VectorXd> qvecs, trajectory_msgs::JointTrajectory &new_trajectory, double &final_time);
     void rightArmSaluteMove(std::vector<Eigen::VectorXd> qvecs, trajectory_msgs::JointTrajectory &new_trajectory, double &final_time);
     void rightArmZigzagMove(std::vector<Eigen::VectorXd> qvecs, trajectory_msgs::JointTrajectory &new_trajectory, double &final_time);
     void rightArmComeOnMove(std::vector<Eigen::VectorXd> qvecs, trajectory_msgs::JointTrajectory &new_trajectory, double &final_time);
     Vectorq7x1 getQvecRigthArm();
-    sensor_msgs::JointState get_joint_states();
+    sensor_msgs::JointState getJointStates();
 
 private:
     // put private member data here;  "private" data will only be available to member functions of this class;
@@ -57,7 +58,7 @@ private:
     // some objects to support subscriber, service, and publisher
     ros::Subscriber joint_state_sub_; //these will be set up within the class constructor, hiding these ugly details
     Vectorq7x1 q_vec_right_arm_; //,q_in,q_soln,q_snapshot; 
-    Vectorq7x1 qdot_max_vec; // velocity constraint on each joint for interpolation
+    Vectorq7x1 qdot_max_vec_; // velocity constraint on each joint for interpolation
     sensor_msgs::JointState joint_states_; // copy from robot/joint_states subscription
     baxter_core_msgs::JointCommand right_cmd_;  // define instances of these message types, to control arms
 
@@ -69,8 +70,8 @@ private:
     void jointStatesCb(const sensor_msgs::JointState& js_msg); //prototype for callback of joint-state messages
     // void map_right_arm_joint_indices(vector<string> joint_names);
 
-    double transition_time(Vectorq7x1 dqvec);
-    double transition_time(Eigen::VectorXd dqvec);
+    double transitionTime(Vectorq7x1 dqvec);
+    double transitionTime(Eigen::VectorXd dqvec);
     //prototype for callback for example service
     //bool serviceCallback(cwru_srv::simple_bool_service_messageRequest& request, cwru_srv::simple_bool_service_messageResponse& response);
 };
