@@ -34,8 +34,8 @@ int main(int argc, char** argv) {
     string answer;
     Vectorq7x1 q_pre_pose;
     //q_in << 0, 0, 0, 0, 0, 0, 0;  
-    // q_pre_pose<< -0.907528, -0.111813,   2.06622,    1.8737,    -1.295,   2.00164,  -2.87179;
-    q_pre_pose << 0, 0, 0, 0, 0, 0, 0;
+    q_pre_pose<< -0.907528, -0.111813,   2.06622,    1.8737,    -1.295,   2.00164,  -2.87179;
+    // q_pre_pose << 0, 0, 0, 0, 0, 0, 0;
     Eigen::VectorXd q_in_vecxd;
     Vectorq7x1 q_vec_right_arm;
 
@@ -64,12 +64,14 @@ int main(int argc, char** argv) {
         cout<<"r_arm state:"<<q_vec_right_arm.transpose()<<endl;
         q_in_vecxd = q_vec_right_arm; // start from here;
         des_path.push_back(q_in_vecxd); //put all zeros here
-        q_in_vecxd = q_pre_pose; // conversion; not sure why I needed to do this...but des_path.push_back(q_in_vecxd) likes it
-        des_path.push_back(q_in_vecxd); //twice, to define a trajectory
-
         cout << "stuffing right arm to its zero configuration: " << endl;
-        myInsterestingMoves.rightArmSinMove(des_path, des_trajectory, final_time); //convert from vector of 7dof poses to trajectory message        
-        // here is a "goal" object compatible with the server, as defined in example_action_server/action
+
+        myInsterestingMoves.rightArmZeroConfig(des_path, des_trajectory, final_time);
+
+        // q_in_vecxd = q_pre_pose; // conversion; not sure why I needed to do this...but des_path.push_back(q_in_vecxd) likes it
+        // des_path.push_back(q_in_vecxd); //twice, to define a trajectory
+
+        // // here is a "goal" object compatible with the server, as defined in example_action_server/action
         baxter_trajectory_streamer::trajGoal goal; 
         // does this work?  copy traj to goal:
         goal.trajectory = des_trajectory;
@@ -88,7 +90,6 @@ int main(int argc, char** argv) {
             return 0; // bail out; optionally, could print a warning message and retry
         }
         server_exists = action_client.waitForServer(); //wait forever 
-
 
         ROS_INFO("connected to action server");  // if here, then we connected to the server;
 
@@ -176,8 +177,30 @@ int main(int argc, char** argv) {
     des_path.push_back(q_in_vecxd); //put all zeros here
 
     cout << "stuffing right arm sine profile trajectory: " << endl;
-    myInsterestingMoves.rightArmSinMove(des_path, des_trajectory, final_time)
+    myInsterestingMoves.rightArmSaluteMove(des_path, des_trajectory, final_time)
+    goal.trajectory = des_trajectory;
+    ROS_INFO("waiting for server: ");
+    server_exists = action_client.waitForServer(ros::Duration(5.0)); // wait for up to 5 seconds
+    // something odd in above: does not seem to wait for 5 seconds, but returns rapidly if server not running
 
+    if (!server_exists) {
+        ROS_WARN("could not connect to server; will wait forever");
+        return 0; // bail out; optionally, could print a warning message and retry
+    }
+    server_exists = action_client.waitForServer(); //wait forever 
+    ROS_INFO("connected to action server");  // if here, then we connected to the server;
+    g_count++;
+    goal.traj_id = g_count; // this merely sequentially numbers the goals sent
+    ROS_INFO("sending traj_id %d",g_count);
+    action_client.sendGoal(goal,&doneCb); // we could also name additional callback functions here, if desired
+    finished_before_timeout = action_client.waitForResult(ros::Duration(final_time + 2.0));
+    if (!finished_before_timeout) {
+        ROS_WARN("giving up waiting on result for goal number %d",g_count);
+        return 0;
+    }
+    else {
+        ROS_INFO("finished before timeout");
+    }
 
     return 0;
 }
