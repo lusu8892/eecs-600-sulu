@@ -1,8 +1,8 @@
-// scopyright
+// copyright
 
 #include <my_interesting_moves/my_interesting_moves.h>
 
-MyInterestingMoves::MyInsterestingMoves(ros::NodeHandle* nodehandle): nh_(&nodehandle)
+MyInterestingMoves::MyInterestingMoves(ros::NodeHandle* nodehandle)
 {
     initializeSubscribers(); // package up the messy work of creating subscribers; do this overhead in constructor
     // define the joint angles 0-6 to be right arm, from shoulder out to wrist;
@@ -18,7 +18,7 @@ MyInterestingMoves::MyInsterestingMoves(ros::NodeHandle* nodehandle): nh_(&nodeh
     qdot_max_vec_ *= SPEED_SCALE_FACTOR;
 }
 
-void stuffTrajectory(std::vector<Eigen::VectorXd> qvecs, trajectory_msgs::JointTrajectory &new_trajectory, double &final_time);
+void MyInterestingMoves::stuffTrajectory(std::vector<Eigen::VectorXd> qvecs, trajectory_msgs::JointTrajectory &new_trajectory, double &final_time)
 {
     new_trajectory.points.clear(); // can clear components, but not entire trajectory_msgs
     new_trajectory.joint_names.clear(); 
@@ -145,29 +145,52 @@ void MyInterestingMoves::rightArmSaluteMove(std::vector<Eigen::VectorXd> qvecs, 
 
         for (int i = 0; i < 7; i++)
         {
-            if ( i == 2 || i == 4 ) // "right_e0", "right_w1", joints will move
+            if ( i == 2 || i == 4 ) // "right_e0", "right_w0", joints will move
             {
                 q_vec_des[i] = q_des
             }
-            // "right_s0", "right_s1", "right_e1", "right_w1, "right_w2" joints will keep the same angle as last movement
+            // "right_s0", "right_s1", "right_e1", "right_w1, "right_w2" joints will keep the same angle as -PI/4, -PI/4, 0, -PI/2, 0
             q_vec_des[i] = freeze_joint_val[i]; 
         }
         qvecs.push_back(q_vec_des);
     }
 
-    stuffTrajectory(qvecs, new_trajectory, trajectory_point, final_time);
+    stuffTrajectory(qvecs, new_trajectory, final_time);
 }
 
 
-void rightArmZigzagMove(std::vector<Eigen::VectorXd> qvecs, trajectory_msgs::JointTrajectory &new_trajectory, double &final_time)
+void MyInterestingMoves::rightArmZigzagMove(std::vector<Eigen::VectorXd> qvecs, trajectory_msgs::JointTrajectory &new_trajectory, double &final_time)
 {
+    Vectorq7x1 q_zero_pose << -PI/4, 0, PI/1.1, 0, 0, 0, 0; // s0 s1 e0 e1 w0 w1 w2
+    Vectorq7x1 q_des_pose << -PI/4, PI/3, PI/1.1, 0, 0, PI/4, 0; // s0 s1 e0 e1 w0 w1 w2
 
+    qvecs.push_back(q_zero_pose);
+
+    Eigen::VectorXd freeze_joint_val = qvecs.back(); // remember the current joints value
+    Vectorq7x1 q_vec_des;
+
+    for (int cycle; cycle < 5; cycle ++)
+    {
+        qvecs.push_back(q_des_pose);
+        qvecs.push_back(q_zero_pose);
+    }
+
+    stuffTrajectory(qvecs, new_trajectory, final_time);
 }
 
 
 void MyInterestingMoves::rightArmComeOnMove(std::vector<Eigen::VectorXd> qvecs, trajectory_msgs::JointTrajectory &trajectory, double &final_time)
 {
+    Vectorq7x1 q_zero_pose << PI/4, -PI/3, PI/1.1, PI/6, 0, 0, 0;// s0 s1 e0 e1 w0 w1 w2
+    Vectorq7x1 q_des_pose << PI/4, -PI/3, PI/1.1, PI/3, 0, 0, 0; // s0 s1 e0 e1 w0 w1 w2
 
+    for (int cycle; cycle < 5; cycle ++)
+    {
+        qvecs.push_back(q_des_pose);
+        qvecs.push_back(q_zero_pose);
+    }
+
+    stuffTrajectory(qvecs, new_trajectory, final_time);
 }
 
 Vectorq7x1 MyInterestingMoves::getQvecRigthArm()

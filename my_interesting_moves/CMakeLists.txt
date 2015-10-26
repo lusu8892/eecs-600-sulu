@@ -125,9 +125,9 @@ include_directories(
 )
 
 ## Declare a C++ library
-# add_library(my_interesting_moves
-#   src/${PROJECT_NAME}/my_interesting_moves.cpp
-# )
+add_library(my_interesting_moves
+   src/my_interesting_moves.cpp
+)
 
 ## Add cmake target dependencies of the library
 ## as an example, code may need to be generated before libraries
