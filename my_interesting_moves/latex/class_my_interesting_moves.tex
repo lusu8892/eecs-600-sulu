@@ -1,0 +1,115 @@
+\hypertarget{class_my_interesting_moves}{\section{My\-Interesting\-Moves Class Reference}
+\label{class_my_interesting_moves}\index{My\-Interesting\-Moves@{My\-Interesting\-Moves}}
+}
+\subsection*{Public Member Functions}
+\begin{DoxyCompactItemize}
+\item 
+\hypertarget{class_my_interesting_moves_aec8a013d087eb83aff717768d78bfdcd}{{\bfseries My\-Interesting\-Moves} (ros\-::\-Node\-Handle $\ast$nodehandle)}\label{class_my_interesting_moves_aec8a013d087eb83aff717768d78bfdcd}
+
+\item 
+void \hyperlink{class_my_interesting_moves_a8466c238aa9af0c9a99fbb8a132454f1}{right\-Arm\-Zero\-Config} (std\-::vector$<$ Eigen\-::\-Vector\-Xd $>$ qvecs, trajectory\-\_\-msgs\-::\-Joint\-Trajectory \&new\-\_\-trajectory, double \&final\-\_\-time)
+\item 
+void \hyperlink{class_my_interesting_moves_afb21bc0508076a0eebea9fb968041933}{right\-Arm\-Salute\-Move} (std\-::vector$<$ Eigen\-::\-Vector\-Xd $>$ qvecs, trajectory\-\_\-msgs\-::\-Joint\-Trajectory \&new\-\_\-trajectory, double \&final\-\_\-time)
+\item 
+void \hyperlink{class_my_interesting_moves_a1adb0506f95f1ab0c64b7d09d08a39f5}{right\-Arm\-Zigzag\-Move} (std\-::vector$<$ Eigen\-::\-Vector\-Xd $>$ qvecs, trajectory\-\_\-msgs\-::\-Joint\-Trajectory \&new\-\_\-trajectory, double \&final\-\_\-time)
+\item 
+void \hyperlink{class_my_interesting_moves_a9559af6f2578c5ce5fa11765635ea3cd}{right\-Arm\-Come\-On\-Move} (std\-::vector$<$ Eigen\-::\-Vector\-Xd $>$ qvecs, trajectory\-\_\-msgs\-::\-Joint\-Trajectory \&new\-\_\-trajectory, double \&final\-\_\-time)
+\item 
+Vectorq7x1 \hyperlink{class_my_interesting_moves_a23a9e1c0dc0081934c6ff0f6cd6e57c9}{get\-Qvec\-Rigth\-Arm} ()
+\item 
+sensor\-\_\-msgs\-::\-Joint\-State \hyperlink{class_my_interesting_moves_af3f3a8ce529896e3d59457e2de176322}{get\-Joint\-States} ()
+\end{DoxyCompactItemize}
+
+
+\subsection{Member Function Documentation}
+\hypertarget{class_my_interesting_moves_a8466c238aa9af0c9a99fbb8a132454f1}{\index{My\-Interesting\-Moves@{My\-Interesting\-Moves}!right\-Arm\-Zero\-Config@{right\-Arm\-Zero\-Config}}
+\index{right\-Arm\-Zero\-Config@{right\-Arm\-Zero\-Config}!MyInterestingMoves@{My\-Interesting\-Moves}}
+\subsubsection[{right\-Arm\-Zero\-Config}]{\setlength{\rightskip}{0pt plus 5cm}void My\-Interesting\-Moves\-::right\-Arm\-Zero\-Config (
+\begin{DoxyParamCaption}
+\item[{std\-::vector$<$ Eigen\-::\-Vector\-Xd $>$}]{qvecs, }
+\item[{trajectory\-\_\-msgs\-::\-Joint\-Trajectory \&}]{new\-\_\-trajectory, }
+\item[{double \&}]{final\-\_\-time}
+\end{DoxyParamCaption}
+)}}\label{class_my_interesting_moves_a8466c238aa9af0c9a99fbb8a132454f1}
+This member function will reset robot right arm to zero configuration. 
+\begin{DoxyParams}{Parameters}
+{\em qvecs} & input\-: joint path \\
+\hline
+{\em new\-\_\-trajectory} & output\-: joint trajectory \\
+\hline
+{\em final\-\_\-time} & output\-: the total time to finish the joint trajectory \\
+\hline
+\end{DoxyParams}
+\hypertarget{class_my_interesting_moves_afb21bc0508076a0eebea9fb968041933}{\index{My\-Interesting\-Moves@{My\-Interesting\-Moves}!right\-Arm\-Salute\-Move@{right\-Arm\-Salute\-Move}}
+\index{right\-Arm\-Salute\-Move@{right\-Arm\-Salute\-Move}!MyInterestingMoves@{My\-Interesting\-Moves}}
+\subsubsection[{right\-Arm\-Salute\-Move}]{\setlength{\rightskip}{0pt plus 5cm}void My\-Interesting\-Moves\-::right\-Arm\-Salute\-Move (
+\begin{DoxyParamCaption}
+\item[{std\-::vector$<$ Eigen\-::\-Vector\-Xd $>$}]{qvecs, }
+\item[{trajectory\-\_\-msgs\-::\-Joint\-Trajectory \&}]{new\-\_\-trajectory, }
+\item[{double \&}]{final\-\_\-time}
+\end{DoxyParamCaption}
+)}}\label{class_my_interesting_moves_afb21bc0508076a0eebea9fb968041933}
+This member function will generate a joint trajectory to enable robot right arm execute salute motion. 
+\begin{DoxyParams}{Parameters}
+{\em qvecs} & input\-: joint path \\
+\hline
+{\em new\-\_\-trajectory} & output\-: joint trajectory \\
+\hline
+{\em final\-\_\-time} & output\-: the total time to finish the joint trajectory \\
+\hline
+\end{DoxyParams}
+\hypertarget{class_my_interesting_moves_a1adb0506f95f1ab0c64b7d09d08a39f5}{\index{My\-Interesting\-Moves@{My\-Interesting\-Moves}!right\-Arm\-Zigzag\-Move@{right\-Arm\-Zigzag\-Move}}
+\index{right\-Arm\-Zigzag\-Move@{right\-Arm\-Zigzag\-Move}!MyInterestingMoves@{My\-Interesting\-Moves}}
+\subsubsection[{right\-Arm\-Zigzag\-Move}]{\setlength{\rightskip}{0pt plus 5cm}void My\-Interesting\-Moves\-::right\-Arm\-Zigzag\-Move (
+\begin{DoxyParamCaption}
+\item[{std\-::vector$<$ Eigen\-::\-Vector\-Xd $>$}]{qvecs, }
+\item[{trajectory\-\_\-msgs\-::\-Joint\-Trajectory \&}]{new\-\_\-trajectory, }
+\item[{double \&}]{final\-\_\-time}
+\end{DoxyParamCaption}
+)}}\label{class_my_interesting_moves_a1adb0506f95f1ab0c64b7d09d08a39f5}
+This member function will generate a joint trajectory to enable robot right arm execute zigzag-\/like motion. 
+\begin{DoxyParams}{Parameters}
+{\em qvecs} & input\-: joint path \\
+\hline
+{\em new\-\_\-trajectory} & output\-: joint trajectory \\
+\hline
+{\em final\-\_\-time} & output\-: the total time to finish the joint trajectory \\
+\hline
+\end{DoxyParams}
+\hypertarget{class_my_interesting_moves_a9559af6f2578c5ce5fa11765635ea3cd}{\index{My\-Interesting\-Moves@{My\-Interesting\-Moves}!right\-Arm\-Come\-On\-Move@{right\-Arm\-Come\-On\-Move}}
+\index{right\-Arm\-Come\-On\-Move@{right\-Arm\-Come\-On\-Move}!MyInterestingMoves@{My\-Interesting\-Moves}}
+\subsubsection[{right\-Arm\-Come\-On\-Move}]{\setlength{\rightskip}{0pt plus 5cm}void My\-Interesting\-Moves\-::right\-Arm\-Come\-On\-Move (
+\begin{DoxyParamCaption}
+\item[{std\-::vector$<$ Eigen\-::\-Vector\-Xd $>$}]{qvecs, }
+\item[{trajectory\-\_\-msgs\-::\-Joint\-Trajectory \&}]{new\-\_\-trajectory, }
+\item[{double \&}]{final\-\_\-time}
+\end{DoxyParamCaption}
+)}}\label{class_my_interesting_moves_a9559af6f2578c5ce5fa11765635ea3cd}
+This member function will generate a joint trajectory to enable robot right arm execute come on motion. 
+\begin{DoxyParams}{Parameters}
+{\em qvecs} & input\-: joint path \\
+\hline
+{\em new\-\_\-trajectory} & output\-: joint trajectory \\
+\hline
+{\em final\-\_\-time} & output\-: the total time to finish the joint trajectory \\
+\hline
+\end{DoxyParams}
+\hypertarget{class_my_interesting_moves_a23a9e1c0dc0081934c6ff0f6cd6e57c9}{\index{My\-Interesting\-Moves@{My\-Interesting\-Moves}!get\-Qvec\-Rigth\-Arm@{get\-Qvec\-Rigth\-Arm}}
+\index{get\-Qvec\-Rigth\-Arm@{get\-Qvec\-Rigth\-Arm}!MyInterestingMoves@{My\-Interesting\-Moves}}
+\subsubsection[{get\-Qvec\-Rigth\-Arm}]{\setlength{\rightskip}{0pt plus 5cm}Vectorq7x1 My\-Interesting\-Moves\-::get\-Qvec\-Rigth\-Arm (
+\begin{DoxyParamCaption}
+{}
+\end{DoxyParamCaption}
+)}}\label{class_my_interesting_moves_a23a9e1c0dc0081934c6ff0f6cd6e57c9}
+This member function will get the current joint angles of the right arm. \hypertarget{class_my_interesting_moves_af3f3a8ce529896e3d59457e2de176322}{\index{My\-Interesting\-Moves@{My\-Interesting\-Moves}!get\-Joint\-States@{get\-Joint\-States}}
+\index{get\-Joint\-States@{get\-Joint\-States}!MyInterestingMoves@{My\-Interesting\-Moves}}
+\subsubsection[{get\-Joint\-States}]{\setlength{\rightskip}{0pt plus 5cm}sensor\-\_\-msgs\-::\-Joint\-State My\-Interesting\-Moves\-::get\-Joint\-States (
+\begin{DoxyParamCaption}
+{}
+\end{DoxyParamCaption}
+)}}\label{class_my_interesting_moves_af3f3a8ce529896e3d59457e2de176322}
+This member function will get the current joint angles of the right arm. 
+
+The documentation for this class was generated from the following file\-:\begin{DoxyCompactItemize}
+\item 
+include/my\-\_\-interesting\-\_\-moves/my\-\_\-interesting\-\_\-moves.\-h\end{DoxyCompactItemize}

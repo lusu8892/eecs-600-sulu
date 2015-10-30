@@ -1,7 +1,7 @@
 // wsn pgm to receive Baxter trajectories and interpolate them smoothly
 // as commands to Baxter;
 // right arm only, at present; June 1, 2015
-#include <baxter_trajectory_streamer/my_interesting_moves.h>
+#include <my_interesting_moves/my_interesting_moves.h>
 #include <actionlib/server/simple_action_server.h>
 
 //the following #include refers to the "action" message defined for this package

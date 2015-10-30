@@ -16,7 +16,6 @@ find_package(catkin REQUIRED COMPONENTS
 
 find_package(cmake_modules REQUIRED)
 find_package(Eigen3 REQUIRED)
-
 include_directories(${EIGEN3_INCLUDE_DIR})
 add_definitions(${EIGEN_DEFINITIONS})
 
@@ -128,9 +127,7 @@ include_directories(
 )
 
 ## Declare a C++ library
-# add_library(baxter_trajectory_streamer
-#   src/${PROJECT_NAME}/baxter_trajectory_streamer.cpp
-# )
+#add_library(my_interesting_moves my_interesting_moves.cpp)
 
 ## Add cmake target dependencies of the library
 ## as an example, code may need to be generated before libraries
