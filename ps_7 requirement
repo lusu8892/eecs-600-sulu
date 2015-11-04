@@ -1,0 +1,12 @@
+1) run your code from PS6 on the physical robot and record video of its motion.  The intent that that you will see robot motion that is similar to what you simulated.  You may upload your video to Blackboard, or you may upload it to YouTube, and submit a link to your video.
+
+2) From Gazebo simulation of Baxter, wrote a program that:
+
+  *accepts user input of "selected points" from Rviz
+
+  *finds points that are coplanar with the selected patch (to within some specified tolerance)
+
+  *displays a computed pointcloud, overlayed on the Rviz display showing all of the Kinect points that are co-planar with your selected patch.
+
+Submit both your code and a Kazaam video of your code operating.  Show points selected at the top of the can vs points selected from the table top.
+
