@@ -27,11 +27,11 @@ void MyInterestingMoves::rightArmSaluteMove(std::vector<Eigen::VectorXd> qvecs,
         trajectory_msgs::JointTrajectory &new_trajectory, double &final_time)
 {
     Vectorq7x1 q_zero_pose;
-    q_zero_pose << PI/5, PI/4, (170 * PI) / 180, (120 * PI) / 180, (170 * PI) / 180, 0, 0;  // s0 s1 e0 e1 w0 w1 w2
+    q_zero_pose << PI/5, PI/4, (170 * PI) / 180, (90 * PI) / 180, (170 * PI) / 180, 0, 0;  // s0 s1 e0 e1 w0 w1 w2
     qvecs.push_back(q_zero_pose);
 
     Vectorq7x1 q_des_pose;
-    q_des_pose << PI/5, PI/4, PI / 2, (120 * PI) / 180, (170 * PI) / 180, 0, 0;  // s0 s1 e0 e1 w0 w1 w2
+    q_des_pose << PI/5, PI/4, PI / 2, (90 * PI) / 180, (170 * PI) / 180, 0, 0;  // s0 s1 e0 e1 w0 w1 w2
 
     for (int cycle = 0; cycle < 3; cycle ++)
     {
@@ -49,7 +49,7 @@ void MyInterestingMoves::rightArmZigzagMove(std::vector<Eigen::VectorXd> qvecs,
     q_zero_pose << -PI/4, 0, (170 * PI) / 180, 0, 0, 0, 0;  // s0 s1 e0 e1 w0 w1 w2
 
     Vectorq7x1 q_des_pose;
-    q_des_pose << -PI/4, PI/3, (170 * PI) / 180, (120 * PI) / 180, 0, -PI/2, 0;  // s0 s1 e0 e1 w0 w1 w2
+    q_des_pose << -PI/4, PI/4, (170 * PI) / 180, (120 * PI) / 180, 0, -PI/2, 0;  // s0 s1 e0 e1 w0 w1 w2
 
     qvecs.push_back(q_zero_pose);
 

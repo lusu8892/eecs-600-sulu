@@ -7,19 +7,19 @@
 // #include <actionlib/client/terminal_state.h>
 // #include <my_interesting_moves/my_interesting_moves.h>
 // //this #include refers to the new "action" message defined for this package
-// // the action message can be found in: .../baxter_trajectory_streamer/action/traj.action
+// // the action message can be found in: .../cwru_action/action/traj.action
 // // automated header generation creates multiple headers for message I/O
 // // these are referred to by the root name (traj) and appended name (Action)
-// // If you write a new client of the server in this package, you will need to include baxter_trajectory_streamer in your package.xml,
+// // If you write a new client of the server in this package, you will need to include cwru_action in your package.xml,
 // // and include the header file below
-// #include <baxter_trajectory_streamer/trajAction.h>
+// #include <cwru_action/trajAction.h>
 // using namespace std;
 // #define VECTOR_DIM 7 // e.g., a 7-dof vector
 // #define PI = 3.141592653
 // // This function will be called once when the goal completes
 // // this is optional, but it is a convenient way to get access to the "result" message sent by the server
 // void doneCb(const actionlib::SimpleClientGoalState& state,
-//         const baxter_trajectory_streamer::trajResultConstPtr& result) {
+//         const cwru_action::trajResultConstPtr& result) {
 //     ROS_INFO(" doneCb: server responded with state [%s]", state.toString().c_str());
 //     ROS_INFO("got return val = %d; traj_id = %d",result->return_val,result->traj_id);
 // }
@@ -56,13 +56,13 @@
 //     }
 
 //     // here is a "goal" object compatible with the server, as defined in example_action_server/action
-//     baxter_trajectory_streamer::trajGoal goal; 
+//     cwru_action::trajGoal goal; 
 //     // does this work?  copy traj to goal:
 //     goal.trajectory = des_trajectory;
 //     //cout<<"ready to connect to action server; enter 1: ";
 //     //cin>>ans;
 //     // use the name of our server, which is: trajActionServer (named in traj_interpolator_as.cpp)
-//     actionlib::SimpleActionClient<baxter_trajectory_streamer::trajAction> action_client("trajActionServer", true);
+//     actionlib::SimpleActionClient<cwru_action::trajAction> action_client("trajActionServer", true);
 
 //     // attempt to connect to the server:
 //     ROS_INFO("waiting for server: ");
@@ -197,12 +197,12 @@
 #include <actionlib/client/terminal_state.h>
 #include <my_interesting_moves/my_interesting_moves.h>
 //this #include refers to the new "action" message defined for this package
-// the action message can be found in: .../baxter_trajectory_streamer/action/traj.action
+// the action message can be found in: .../cwru_action/action/traj.action
 // automated header generation creates multiple headers for message I/O
 // these are referred to by the root name (traj) and appended name (Action)
-// If you write a new client of the server in this package, you will need to include baxter_trajectory_streamer in your package.xml,
+// If you write a new client of the server in this package, you will need to include cwru_action in your package.xml,
 // and include the header file below
-#include <baxter_trajectory_streamer/trajAction.h>
+#include <cwru_action/trajAction.h>
 
 using std::cout;
 using std::endl;
@@ -235,14 +235,14 @@ private:
     MyInterestingMoves myInterestingMoves;
 
     // stuff used to make action service(client)
-    actionlib::SimpleActionClient<baxter_trajectory_streamer::trajAction> action_client_;
+    actionlib::SimpleActionClient<cwru_action::trajAction> action_client_;
     // here is a "goal" object compatible with the server, as defined in example_action_server/action
-    baxter_trajectory_streamer::trajGoal goal_;
+    cwru_action::trajGoal goal_;
 
     bool server_exists_;
     bool finished_before_timeout_;
     void doneCb(const actionlib::SimpleClientGoalState& state,
-        const baxter_trajectory_streamer::trajResultConstPtr& result);
+        const cwru_action::trajResultConstPtr& result);
 };
 
 BaxterTrajActionClient::BaxterTrajActionClient(ros::NodeHandle* nodehandle)
@@ -285,7 +285,7 @@ void BaxterTrajActionClient::callInterestingMove(void (MyInterestingMoves::*func
         // void* (std::vector<Eigen::VectorXd>, trajectory_msgs::JointTrajectory&, double&)
         goal_.trajectory = des_trajectory_;
         g_count_++;
-        goal_.traj_id = g_count_; // this merely sequentially numbers the goals sent
+        // goal_.traj_id = g_count_; // this merely sequentially numbers the goals sent
         ROS_INFO("sending traj_id %d",g_count_);
         // action_client.sendGoal(goal); // simple example--send goal, but do not specify callbacks
         action_client_.sendGoal(goal_,boost::bind(&BaxterTrajActionClient::doneCb, this, _1, _2)); // we could also name additional callback functions here, if desired
@@ -304,10 +304,10 @@ void BaxterTrajActionClient::callInterestingMove(void (MyInterestingMoves::*func
 }
 
 void BaxterTrajActionClient::doneCb(const actionlib::SimpleClientGoalState& state,
-        const baxter_trajectory_streamer::trajResultConstPtr& result)
+        const cwru_action::trajResultConstPtr& result)
 {
     ROS_INFO(" doneCb: server responded with state [%s]", state.toString().c_str());
-    ROS_INFO("got return val = %d; traj_id = %d",result->return_val,result->traj_id);
+    ROS_INFO("got return val = %d",result->return_val);
 }
 
 int main(int argc, char** argv) {
