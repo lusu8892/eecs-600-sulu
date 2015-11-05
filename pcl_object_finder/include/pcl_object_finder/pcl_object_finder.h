@@ -40,8 +40,12 @@ class PclObjectFinder
 {
 public:
     PclObjectFinder(ros::Nodelhandle* nodehandle)
-
+    ~PclObjectFinder();
     Eigen::Affine3f transformTFToEigen(const tf::Transform &t);
+    void transformCloud(PointCloud<pcl::PointXYZ>::Ptr inputCloud, Eigen::Affine3f A,
+        PointCloud<pcl::PointXYZ>::Ptr outputCloud);
+    void fitPointsToPlane(Eigen::MatrixXd points_mat,Eigen::Vector3d &plane_normal, double &plane_dist);
+    void showObjectSurface(PointCloud<pcl::PointXYZ>::Ptr outputCloud, PointCloud<pcl::PointXYZ>::Ptr pointFound);
 
 private:
     ros::NodeHandle nh_;
@@ -63,7 +67,7 @@ private:
     void initializeSubscribers(); // we will define some helper methods to encapsulate the gory details of initializing subscribers, publishers and services
     void initializePublishers();
     //void initializeServices();
-    
+
     void selectCB(const sensor_msgs::PointCloud2ConstPtr& cloud);
     void kinectCB(const sensor_msgs::PointCloud2ConstPtr& cloud);
 };
