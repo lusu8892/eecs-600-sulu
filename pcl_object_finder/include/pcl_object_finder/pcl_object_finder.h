@@ -44,7 +44,7 @@ public:
     Eigen::Affine3f transformTFToEigen(const tf::Transform &t);
     void transformCloud(PointCloud<pcl::PointXYZ>::Ptr inputCloud, Eigen::Affine3f A,
         PointCloud<pcl::PointXYZ>::Ptr outputCloud);
-    void fitPointsToPlane(Eigen::MatrixXd points_mat,Eigen::Vector3d &plane_normal, double &plane_dist);
+    void fitPointsToPlane(Eigen::MatrixXd* points_mat, Eigen::Vector3d &plane_normal, double &plane_dist);
     void showObjectSurface(PointCloud<pcl::PointXYZ>::Ptr outputCloud, PointCloud<pcl::PointXYZ>::Ptr pointFound);
 
 private:
@@ -60,7 +60,10 @@ private:
     pcl::PointCloud<pcl::PointXYZ>::Ptr pclTransformed_ptr_;
     pcl::PointCloud<pcl::PointXYZ>::Ptr pclSelectedPoints_ptr_;
     pcl::PointCloud<pcl::PointXYZ>::Ptr pclTransformedSelectedPoints_ptr_;
-    
+
+    tf::StampedTransform tf_sensor_frame_to_torso_frame_;
+    tf::TransformListener tf_listener_;
+
     bool got_kinect_cloud_;
     bool got_selected_points_;
     // member methods as well:
@@ -68,6 +71,8 @@ private:
     void initializePublishers();
     //void initializeServices();
 
-    void selectCB(const sensor_msgs::PointCloud2ConstPtr& cloud);
-    void kinectCB(const sensor_msgs::PointCloud2ConstPtr& cloud);
+    void kinectCB(const sensor_msgs::PointCloud2ConstPtr& kinectCloud);
+    void selectCB(const sensor_msgs::PointCloud2ConstPtr& selectedCloud);
+    void savePointCloudWrtTorso(PointCloud<pcl::PointXYZ>::Ptr inputCloud);
+    Eigen::MatrixXd convertPclToEigen(PointCloud<pcl::PointXYZ>::Ptr inputCloud)
 };
