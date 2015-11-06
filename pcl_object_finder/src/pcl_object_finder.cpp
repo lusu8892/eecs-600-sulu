@@ -32,74 +32,52 @@ PclObjectFinder::~PclObjectFinder()
     delete pclTransformedSelectedPoints_ptr_;
 }
 
-Eigen::Affine3f PclObjectFinder::transformTFToEigen(const tf::Transform &t)
+void PclObjectFinder::returnSelectedPointCloud(Eigen::MatrixXd* points_mat)
 {
-    Eigen::Affine3f e;  // treat the Eigen::Affine as a 4x4 matrix
-
-    // filling in the first three rows elements
-    for (int row = 0; row < 3; ++row)
-    {
-        e.matrix()(row,3) = t.getOrigin()[row];  // filling in the 4th column elements
-        for (int col = 0; col < 3; ++col)
-        {
-            e.matrix()(row, col) = t.getBasis()[row][col];  // filling in first three columns elements
-        }
-    }
-    // filling in 4th row elements
-    for (int col = 0; col < 3; ++col)
-    {
-        e.matrix()(3, col) = 0;
-    }
-    // filling in the (4,4) element
-    e.matrix()(3,3) = 1;
+    // transform the point cloud data acquired from selectCB to point cloud data wrt torso frame
+    void transformPointCloudWrtTorso(pclSelectedPoints_ptr_, pclTransformedSelectedPoints_ptr_);
+    // convert point cloud data to eigen type
+    convertPclToEigen(pclTransformedSelectedPoints_ptr_, points_mat);
 }
 
-void PclObjectFinder::transformCloud(PointCloud<pcl::PointXYZ>::Ptr inputCloud, Eigen::Affine3f A,
-        PointCloud<pcl::PointXYZ>::Ptr outputCloud)
-{
-    outputCloud -> header = inputCloud -> header;
-    outputCloud -> is_dense = inputCloud -> is_dense;
-    outputCloud -> width = inputCloud -> width;
-    outputCloud -> height = inputCloud -> height;
-    int npts = inputCloud -> points.size();
-    outputCloud -> points.resize();
-
-    // getVector3fMap() READING points from a pointCloud, with conversions to Eigen compatible data
-    // Or allowing to WRITE points to a pointcloud, with conversions from Eigen type data.
-    for (int i = 0; i < npts; ++ i)
-    {
-        outputCloud ->points[i].getVector3fMap() = A * inputCloud -> points[i]. getVector3fMap();
-    }
-}
-void PclObjectFinder::fitPointsToPlane(Eigen::MatrixXd points_mat,
-        Eigen::Vector3d &plane_normal, double &plane_dist);
+Eigen::Vector3d PclObjectFinder::findCentroid(Eigen::MatrixXd* points_mat)
 {
     // first compute the centroid of the selected point cloud data
-    Eigen::Vector3f centroid_vec;
+    Eigen::Vector3d centroid_vec;
     // initializing the element in centroid vector all as zero
-    centroid_vec = Eigen::MatrixXf::Zero(3,1);
+    centroid_vec = Eigen::MatrixXd::Zero(3,1);
     // add all the selected point cloud data (points) together
-    int npts = points_mat.cols();
+    int npts = *points_mat.cols();
     for (int i = 0; i < npts; ++i)
     {
-        centroid_vec += points_mat.cols(i);
+        centroid_vec += *points_mat.cols(i);
     }
     // divided the sum matrix by the number of points to get centroid
     centroid_vec /= npts;
+    return centroid_vec;
+}
+
+void PclObjectFinder::fitPointsToPlane(Eigen::MatrixXd* points_mat,
+        Eigen::Vector3d &plane_normal, double &plane_dist);
+{
+    // first compute the centroid of the selected point cloud data
+    Eigen::Vector3d centroid_vec;
+    centroid_vec = findCentroid(points_mat);
+
     // subtract the centroid from all points in points_mat;
-    Eigen::MatrixXf points_offset_mat = points_mat;
+    Eigen::MatrixXd points_offset_mat = *points_mat;
     for (int i = 0; i < npts; ++i)
     {
         points_offset_mat.cols(i) = points_offset_mat.cols(i) - centroid_vec;
     }
     // compute the covariance matrix
-    Eigen::Matrix3f covar_mat;
+    Eigen::Matrix3d covar_mat;
     covar_mat = points_offset_mat * points_offset_mat.transpose();
 
     // caompute the eigenvalue and eigenvector of the covariance matrix
-    Eigen::EigenSolver<Eigen::Matrix3f> es3f(covar_mat);
+    Eigen::EigenSolver<Eigen::Matrix3d> es3f(covar_mat);
     // get the real part of the eigen value
-    Eigen::VectorXf evals;
+    Eigen::VectorXd evals;
     evals = es3f.eigenvalue().real();
 
     // Eigen::Vector3cf complex_vec;
@@ -121,6 +99,11 @@ void PclObjectFinder::fitPointsToPlane(Eigen::MatrixXd points_mat,
     plane_dist = plane_normal.dot(centroid);
 }
 
+void PclObjectFinder::showObjectSurface(PointCloud<pcl::PointXYZ>::Ptr inputSelectedCloud,
+        PointCloud<pcl::PointXYZ>::Ptr pointFound)
+{
+
+}
 
 void PclObjectFinder::initializeSubscribers()
 {
@@ -170,15 +153,56 @@ void PclObjectFinder::selectCB(const sensor_msgs::PointCloud2ConstPtr& selectedC
             (int) pclSelectedPoints_ptr_ -> height);
         got_selected_points_ = true;
     }
-    savePointCloudWrtTorso(pclSelectedPoints_ptr_);
 }
 
-void PclObjectFinder::savePointCloudWrtTorso(PointCloud<pcl::PointXYZ>::Ptr inputCloud)
+Eigen::Affine3f PclObjectFinder::transformTFToEigen(const tf::Transform &t)
+{
+    Eigen::Affine3f e;  // treat the Eigen::Affine as a 4x4 matrix
+
+    // filling in the first three rows elements
+    for (int row = 0; row < 3; ++row)
+    {
+        e.matrix()(row,3) = t.getOrigin()[row];  // filling in the 4th column elements
+        for (int col = 0; col < 3; ++col)
+        {
+            e.matrix()(row, col) = t.getBasis()[row][col];  // filling in first three columns elements
+        }
+    }
+    // filling in 4th row elements
+    for (int col = 0; col < 3; ++col)
+    {
+        e.matrix()(3, col) = 0;
+    }
+    // filling in the (4,4) element
+    e.matrix()(3,3) = 1;
+    return e;
+}
+
+void PclObjectFinder::transformCloud(PointCloud<pcl::PointXYZ>::Ptr inputCloud, Eigen::Affine3f A,
+        PointCloud<pcl::PointXYZ>::Ptr outputCloud)
+{
+    outputCloud -> header = inputCloud -> header;
+    outputCloud -> is_dense = inputCloud -> is_dense;
+    outputCloud -> width = inputCloud -> width;
+    outputCloud -> height = inputCloud -> height;
+    int npts = inputCloud -> points.size();
+    outputCloud -> points.resize();
+
+    // getVector3fMap() READING points from a pointCloud, with conversions to Eigen compatible data
+    // Or allowing to WRITE points to a pointcloud, with conversions from Eigen type data.
+    for (int i = 0; i < npts; ++ i)
+    {
+        outputCloud ->points[i].getVector3fMap() = A * inputCloud -> points[i]. getVector3fMap();
+    }
+}
+
+void PclObjectFinder::transformPointCloudWrtTorso(PointCloud<pcl::PointXYZ>::Ptr inputCloud,
+        PointCloud<pcl::PointXYZ>::Ptr cloud_transformed)
 {
     Eigen::Affine3f A;  // Affine type transformation matrix
 
     // holder for processed point clouds
-    pcl::PointCloud<pcl::PointXYZ>::Ptr cloud_transformed(new pcl::PointCloud<pcl::PointXYZ>);
+    // pcl::PointCloud<pcl::PointXYZ>::Ptr cloud_transformed(new pcl::PointCloud<pcl::PointXYZ>);
 
     // get the tranformation matrix
     ROS_INFO("get current transform from sensor frame to torso frame: ");
@@ -199,9 +223,8 @@ void PclObjectFinder::savePointCloudWrtTorso(PointCloud<pcl::PointXYZ>::Ptr inpu
     pcl::io::savePCDFileASCII("snapshot_wrt_torso", *cloud_transformed);
 }
 
-Eigen::MatrixXd PclObjectFinder::convertPclToEigen(PointCloud<pcl::PointXYZ>::Ptr inputCloud)
+void PclObjectFinder::convertPclToEigen(PointCloud<pcl::PointXYZ>::Ptr inputCloud, Eigen::MatrixXd* pcl_to_eigen_matd);
 {
-    Eigen::MatrixXd pcl_to_eigen_matd;
     Eigen::MatrixXf pcl_to_eigen_matf;
     int npts = inputCloud -> points.size();
     for (int i = 0; i < npts; ++i)
