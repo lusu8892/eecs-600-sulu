@@ -79,6 +79,6 @@ private:
     void transformCloud(PointCloud<pcl::PointXYZ>::Ptr inputCloud, Eigen::Affine3f A,
         PointCloud<pcl::PointXYZ>::Ptr outputCloud);
     void transformPointCloudWrtTorso(PointCloud<pcl::PointXYZ>::Ptr inputCloud);
-     convertPclToEigen(PointCloud<pcl::PointXYZ>::Ptr inputCloud, Eigen::MatrixXd);
+    void convertPclToEigen(PointCloud<pcl::PointXYZ>::Ptr inputCloud, Eigen::MatrixXd* points_mat);
 
 };
