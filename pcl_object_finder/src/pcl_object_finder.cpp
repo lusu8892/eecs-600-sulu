@@ -32,7 +32,7 @@ PclObjectFinder::~PclObjectFinder()
     delete pclTransformedSelectedPoints_ptr_;
 }
 
-void PclObjectFinder::returnSelectedPointCloud(Eigen::MatrixXd* points_mat)
+void PclObjectFinder::returnSelectedPointCloud(Eigen::MatrixXd& points_mat)
 {
     // transform the point cloud data acquired from selectCB to point cloud data wrt torso frame
     void transformPointCloudWrtTorso(pclSelectedPoints_ptr_, pclTransformedSelectedPoints_ptr_);
@@ -223,7 +223,7 @@ void PclObjectFinder::transformPointCloudWrtTorso(PointCloud<pcl::PointXYZ>::Ptr
     pcl::io::savePCDFileASCII("snapshot_wrt_torso", *cloud_transformed);
 }
 
-void PclObjectFinder::convertPclToEigen(PointCloud<pcl::PointXYZ>::Ptr inputCloud, Eigen::MatrixXd* pcl_to_eigen_matd);
+void PclObjectFinder::convertPclToEigen(PointCloud<pcl::PointXYZ>::Ptr inputCloud, Eigen::MatrixXd& pcl_to_eigen_matd);
 {
     Eigen::MatrixXf pcl_to_eigen_matf;
     int npts = inputCloud -> points.size();
