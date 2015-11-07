@@ -14,7 +14,7 @@ PclObjectFinder::PclObjectFinder(ros::Nodelhandle* nodehandle): nh_(*nodehandle)
 {
     // before initializing other member function, the pointer type variables need to be initialized at first
     pclKinect_ptr_ = new PointCloud<pcl::PointXYZ>;
-    pclTransformed_ptr_ = new PointCloud<pcl::PointXYZ>;
+    pclTransformedKinect_ptr_ = new PointCloud<pcl::PointXYZ>;
     pclSelectedPoints_ptr_ = new PointCloud<pcl::PointXYZ>;
     pclTransformedSelectedPoints_ptr_ = new PointCloud<pcl::PointXYZ>;
 
@@ -27,7 +27,7 @@ PclObjectFinder::PclObjectFinder(ros::Nodelhandle* nodehandle): nh_(*nodehandle)
 PclObjectFinder::~PclObjectFinder()
 {
     delete pclKinect_ptr_;
-    delete pclTransformed_ptr_;
+    delete pclTransformedKinect_ptr_;
     delete pclSelectedPoints_ptr_;
     delete pclTransformedSelectedPoints_ptr_;
 }
@@ -35,9 +35,9 @@ PclObjectFinder::~PclObjectFinder()
 void PclObjectFinder::returnSelectedPointCloud(Eigen::MatrixXd& points_mat)
 {
     // transform the point cloud data acquired from selectCB to point cloud data wrt torso frame
-    void transformPointCloudWrtTorso(pclSelectedPoints_ptr_, pclTransformedSelectedPoints_ptr_);
+    void transformPointCloudWrtTorso(pclKinect_ptr_, pclTransformedSelectedPoints_ptr_);
     // convert point cloud data to eigen type
-    convertPclToEigen(pclTransformedSelectedPoints_ptr_, points_mat);
+    convertPclToEigen(pclTransformedSelectedPoints_ptr_, &points_mat);
 }
 
 Eigen::Vector3d PclObjectFinder::findCentroid(Eigen::MatrixXd* points_mat)
@@ -95,14 +95,19 @@ void PclObjectFinder::fitPointsToPlane(Eigen::MatrixXd* points_mat,
             plane_normal = es3f.eigenvector().cols(i_min).real();
         }
     }
-
     plane_dist = plane_normal.dot(centroid);
 }
 
-void PclObjectFinder::showObjectSurface(PointCloud<pcl::PointXYZ>::Ptr inputSelectedCloud,
-        PointCloud<pcl::PointXYZ>::Ptr pointFound)
+void PclObjectFinder::findPointsOnPlane(Eigen::MatrixXd& points_mat,
+            Eigen::Vector3d centroid_vec, double plane_dist)
 {
-
+    Eigen::MatrixXd kinectCB_points_mat;
+    // transform the point cloud data acquired from kinectCB to point cloud data wrt torso frame
+    void transformPointCloudWrtTorso(pclKinect_ptr_, pclTransformedKinect_ptr_);
+    // convert point cloud data to eigen type
+    convertPclToEigen(pclTransformedKinect_ptr_, &kinectCB_points_mat);
+    
+    
 }
 
 void PclObjectFinder::initializeSubscribers()
@@ -223,7 +228,7 @@ void PclObjectFinder::transformPointCloudWrtTorso(PointCloud<pcl::PointXYZ>::Ptr
     pcl::io::savePCDFileASCII("snapshot_wrt_torso", *cloud_transformed);
 }
 
-void PclObjectFinder::convertPclToEigen(PointCloud<pcl::PointXYZ>::Ptr inputCloud, Eigen::MatrixXd& pcl_to_eigen_matd);
+void PclObjectFinder::convertPclToEigen(PointCloud<pcl::PointXYZ>::Ptr inputCloud, Eigen::MatrixXd* pcl_to_eigen_mat);
 {
     Eigen::MatrixXf pcl_to_eigen_matf;
     int npts = inputCloud -> points.size();
@@ -231,6 +236,6 @@ void PclObjectFinder::convertPclToEigen(PointCloud<pcl::PointXYZ>::Ptr inputClou
     {
         pcl_to_eigen_matf.cols(i) = inputCloud -> points[i].getVector3fMap();
     }
-    pcl_to_eigen_matd = pcl_to_eigen_matf.cast<float>();
+    *pcl_to_eigen_mat = pcl_to_eigen_matf.cast<float>();
 }
 

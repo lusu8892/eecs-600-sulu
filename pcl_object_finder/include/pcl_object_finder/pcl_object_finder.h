@@ -47,7 +47,7 @@ public:
     
     void fitPointsToPlane(Eigen::MatrixXd* points_mat, Eigen::Vector3d &plane_normal, double &plane_dist);
 
-    void showObjectSurface(PointCloud<pcl::PointXYZ>::Ptr inputSelectedCloud, PointCloud<pcl::PointXYZ>::Ptr pointFound);
+    void findPointsOnPlane(Eigen::MatrixXd& points_mat, Eigen::Vector3d centroid_vec, double plane_dist);
 
 private:
     ros::NodeHandle nh_;
@@ -59,7 +59,7 @@ private:
     ros::Publisher  pointcloud_publisher_;
 
     pcl::PointCloud<pcl::PointXYZ>::Ptr pclKinect_ptr_; // (new PointCloud<pcl::PointXYZ>);
-    pcl::PointCloud<pcl::PointXYZ>::Ptr pclTransformed_ptr_;
+    pcl::PointCloud<pcl::PointXYZ>::Ptr pclTransformedKinect_ptr_;
     pcl::PointCloud<pcl::PointXYZ>::Ptr pclSelectedPoints_ptr_;
     pcl::PointCloud<pcl::PointXYZ>::Ptr pclTransformedSelectedPoints_ptr_;
 
@@ -78,7 +78,8 @@ private:
     Eigen::Affine3f transformTFToEigen(const tf::Transform &t);
     void transformCloud(PointCloud<pcl::PointXYZ>::Ptr inputCloud, Eigen::Affine3f A,
         PointCloud<pcl::PointXYZ>::Ptr outputCloud);
-    void transformPointCloudWrtTorso(PointCloud<pcl::PointXYZ>::Ptr inputCloud);
+    void transformPointCloudWrtTorso(PointCloud<pcl::PointXYZ>::Ptr inputCloud, PointCloud<pcl::PointXYZ>::Ptr cloud_transformed);
     void convertPclToEigen(PointCloud<pcl::PointXYZ>::Ptr inputCloud, Eigen::MatrixXd* points_mat);
+    void convertEigenToPcl(Eigen::MatrixXd* points_mat, PointCloud<pcl::PointXYZ>::Ptr outCloud);
 
 };

@@ -23,15 +23,19 @@ int main(int argc, char** argv) {
         ros::Duration(0.01).sleep();
     }
 
-    Eigen::MatrixXd points_mat;
-    pclObjectFinder.returnSelectedPointCloud(points_mat);
+    Eigen::MatrixXd selected_points_mat;
+    pclObjectFinder.returnSelectedPointCloud(selected_points_mat);
 
     Eigen::Vector3d plane_normal;
     double plane_dist = 0.0;
-    pclObjectFinder.fitPointsToPlane(&points_mat, plane_normal, plane_dist);
+    pclObjectFinder.fitPointsToPlane(&selected_points_mat, plane_normal, plane_dist);
 
     Eigen::Vector3d centroid_vec;
     centroid_vec = pclObjectFinder.findCentroid(&points_mat);
+    
+    Eigen::MatrixXd gen_points_mat;
+    pclObjectFinder.findPointsOnPlane(gen_points_mat, centroid_vec, plane_dis);
+    
     
     return 0;
 }
