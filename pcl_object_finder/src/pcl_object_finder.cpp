@@ -35,7 +35,7 @@ PclObjectFinder::~PclObjectFinder()
 void PclObjectFinder::returnSelectedPointCloud(Eigen::MatrixXd& points_mat)
 {
     // transform the point cloud data acquired from selectCB to point cloud data wrt torso frame
-    void transformPointCloudWrtTorso(pclKinect_ptr_, pclTransformedSelectedPoints_ptr_);
+    transformPointCloudWrtTorso(pclKinect_ptr_, pclTransformedSelectedPoints_ptr_);
     // convert point cloud data to eigen type
     convertPclToEigen(pclTransformedSelectedPoints_ptr_, &points_mat);
 }
@@ -98,16 +98,46 @@ void PclObjectFinder::fitPointsToPlane(Eigen::MatrixXd* points_mat,
     plane_dist = plane_normal.dot(centroid);
 }
 
-void PclObjectFinder::findPointsOnPlane(Eigen::MatrixXd& points_mat,
+void PclObjectFinder::findPointsOnPlane(std::vector<Eigen::Vector3d>& points_vec_temp,
             Eigen::Vector3d centroid_vec, double plane_dist)
 {
+    points_vec_temp.clear();
     Eigen::MatrixXd kinectCB_points_mat;
     // transform the point cloud data acquired from kinectCB to point cloud data wrt torso frame
-    void transformPointCloudWrtTorso(pclKinect_ptr_, pclTransformedKinect_ptr_);
+    transformPointCloudWrtTorso(pclKinect_ptr_, pclTransformedKinect_ptr_);
     // convert point cloud data to eigen type
     convertPclToEigen(pclTransformedKinect_ptr_, &kinectCB_points_mat);
     
-    
+    double dist_btw_centroid;
+    double dist_btw_centroid_x;
+    double dist_btw_centroid_y;
+    double centroid_x = centroid_vec[0];
+    double centroid_y = centroid_vec[1];
+    double centroid_z = centroid_vec[2];
+    // set height tolerance around the centroid height (z) as central value
+    double est_centroid_height_uplmt = centroid_z + H_GAZEBO_BEER_TOL;
+    double est_centroid_height_dwlmt = centroid_z - H_GAZEBO_BEER_TOL;
+    // // declare a vector of type Eigen::Vector3d used to hold points which its height close to beer
+    // std::vector<Eigen::Vector3d> points_vec_temp;
+    double test_z;
+    // find out the points that is close to top surface of beer
+    for (int col = 0; col < kinectCB_points_mat.cols(); ++col)
+    {
+        test_z = kinectCB_points_mat.matrix()(col, 2);
+        // find out the points that is close to top surface of beer
+        if (test_z > est_centroid_height_dwlmt && test_z < est_centroid_height_uplmt)
+        {
+            dist_btw_centroid_x = kinectCB_points_mat.matrix()(col, 0) - centroid_x;
+            dist_btw_centroid_y = kinectCB_points_mat.matrix()(col, 1) - centroid_y;
+            dist_btw_centroid = sqrt(pow(dist_btw_centroid_x, 2) + pow(dist_btw_centroid_y, 2));
+            // find out points btw centroid in horizental plane
+            if (dist_btw_centroid < R_GAZEBO_BEER + R_GAZEBO_BEER_TOL)
+            {
+                points_vec_temp.push_back(kinectCB_points_mat.(col);
+            }
+        }
+    }
+    convertEigenToPcl()
 }
 
 void PclObjectFinder::initializeSubscribers()
@@ -228,10 +258,12 @@ void PclObjectFinder::transformPointCloudWrtTorso(PointCloud<pcl::PointXYZ>::Ptr
     pcl::io::savePCDFileASCII("snapshot_wrt_torso", *cloud_transformed);
 }
 
-void PclObjectFinder::convertPclToEigen(PointCloud<pcl::PointXYZ>::Ptr inputCloud, Eigen::MatrixXd* pcl_to_eigen_mat);
+void PclObjectFinder::convertPclToEigen(PointCloud<pcl::PointXYZ>::Ptr inputCloud,
+        Eigen::MatrixXd* pcl_to_eigen_mat);
 {
     Eigen::MatrixXf pcl_to_eigen_matf;
     int npts = inputCloud -> points.size();
+    pcl_to_eigen_matf.resize(3, npts);
     for (int i = 0; i < npts; ++i)
     {
         pcl_to_eigen_matf.cols(i) = inputCloud -> points[i].getVector3fMap();
@@ -239,3 +271,19 @@ void PclObjectFinder::convertPclToEigen(PointCloud<pcl::PointXYZ>::Ptr inputClou
     *pcl_to_eigen_mat = pcl_to_eigen_matf.cast<float>();
 }
 
+void PclObjectFinder::convertEigenToPcl(std::vector<Eigen::Vector3d>* eigen_to_pcl_vec, 
+        PointCloud<pcl::PointXYZ>::Ptr outputCloud)
+{
+    int npts = *eigen_to_pcl_vec.size();
+    for (int i = 0; i < npts; ++i)
+    {
+        outputCloud -> points[i].getVector3fMap() = eigen_to_pcl_vec[i].cast<float>();
+    }
+}
+// double PclObjectFinder::disBtwPoints(double x_0, double y_0, double x, double y)
+// {
+//     double dist_x = x_0 - x;
+//     double dist_y = y_0 - y;
+//     double dist_btw_points = sqrt(pow(dist_x, 2) + pow(dist_y, 2));
+//     return dist_btw_points;
+// }

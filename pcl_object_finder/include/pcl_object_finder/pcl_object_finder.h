@@ -36,6 +36,10 @@
 #include <pcl_ros/transforms.h>
 #include <pcl-1.7/pcl/impl/point_types.hpp>
 
+const double R_GAZEBO_BEER = 0.06; //estimated from ruler tool...example to fit a cylinder of this radius to data
+const double R_GAZEBO_BEER_TOL = 0.01;
+const double H_GAZEBO_BEER_TOL = 0.001;
+
 class PclObjectFinder
 {
 public:
@@ -44,10 +48,11 @@ public:
     void returnSelectedPointCloud(Eigen::MatrixXd& points_mat)
     Eigen::Vector3d findCentroid(Eigen::MatrixXd* points_mat);
 
-    
+    void resetGotSelectedPoints() {got_selected_points_= false;};
+    bool gotSselectedPoints() {return got_selected_points_;};
     void fitPointsToPlane(Eigen::MatrixXd* points_mat, Eigen::Vector3d &plane_normal, double &plane_dist);
 
-    void findPointsOnPlane(Eigen::MatrixXd& points_mat, Eigen::Vector3d centroid_vec, double plane_dist);
+    void findPointsOnPlane(std::vector<Eigen::Vector3d>& points_vec_temp, Eigen::Vector3d centroid_vec, double plane_dist);
 
 private:
     ros::NodeHandle nh_;
@@ -81,5 +86,6 @@ private:
     void transformPointCloudWrtTorso(PointCloud<pcl::PointXYZ>::Ptr inputCloud, PointCloud<pcl::PointXYZ>::Ptr cloud_transformed);
     void convertPclToEigen(PointCloud<pcl::PointXYZ>::Ptr inputCloud, Eigen::MatrixXd* points_mat);
     void convertEigenToPcl(Eigen::MatrixXd* points_mat, PointCloud<pcl::PointXYZ>::Ptr outCloud);
-
+    void PclObjectFinder::convertEigenToPcl(std::vector<Eigen::Vector3d>* eigen_to_pcl_vec, PointCloud<pcl::PointXYZ>::Ptr outputCloud);
+    // double distBtwPoints(double x_0, double y_0, double x, double y);
 };

@@ -33,8 +33,8 @@ int main(int argc, char** argv) {
     Eigen::Vector3d centroid_vec;
     centroid_vec = pclObjectFinder.findCentroid(&points_mat);
     
-    Eigen::MatrixXd gen_points_mat;
-    pclObjectFinder.findPointsOnPlane(gen_points_mat, centroid_vec, plane_dis);
+    std::vector<Eigen::Vector3d> points_vec;
+    pclObjectFinder.findPointsOnPlane(points_vec, centroid_vec, plane_dis);
     
     
     return 0;
