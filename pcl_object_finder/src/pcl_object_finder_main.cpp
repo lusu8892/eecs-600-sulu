@@ -23,19 +23,32 @@ int main(int argc, char** argv) {
         ros::Duration(0.01).sleep();
     }
 
-    Eigen::MatrixXd selected_points_mat;
+    //set up a publisher to display clouds in rviz:
+    ros::Publisher pubCloud = nh.advertise<sensor_msgs::PointCloud2> ("/pcl_cloud_display", 1);
+    //pcl::PointCloud<pcl::PointXYZ> & outputCloud
+    pcl::PointCloud<pcl::PointXYZ>::Ptr display_cloud; // instantiate a pointcloud object, which will be used for display in rviz
+    sensor_msgs::PointCloud2 pcl2_display_cloud; //(new sensor_msgs::PointCloud2); //corresponding data type for ROS message
+
+
+    Eigen::MatrixXf selected_points_mat;
     pclObjectFinder.returnSelectedPointCloud(selected_points_mat);
 
-    Eigen::Vector3d plane_normal;
+    Eigen::Vector3f plane_normal;
     double plane_dist = 0.0;
     pclObjectFinder.fitPointsToPlane(&selected_points_mat, plane_normal, plane_dist);
 
-    Eigen::Vector3d centroid_vec;
+    Eigen::Vector3f centroid_vec;
     centroid_vec = pclObjectFinder.findCentroid(&points_mat);
     
     std::vector<Eigen::Vector3d> points_vec;
-    pclObjectFinder.findPointsOnPlane(points_vec, centroid_vec, plane_dis);
+    pclObjectFinder.findPointsOnPlane(display_cloud, centroid_vec, plane_dis);
     
-    
+    pcl::toROSMsg(*display_cloud, pcl2_display_cloud); //convert datatype to compatible ROS message type for publication
+    pcl2_display_cloud.header.stamp = ros::Time::now(); //update the time stamp, so rviz does not complain        
+    pubCloud.publish(pcl2_display_cloud); //publish a point cloud that can be viewed in rviz (under topic pcl_cloud_display)
+
+    ros::Duration(0.5).sleep(); // sleep for half a second
+    ros::spinOnce();
+
     return 0;
 }

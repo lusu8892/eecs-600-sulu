@@ -10,14 +10,15 @@
 #include <Eigen/Eigenvalues>
 
 
-PclObjectFinder::PclObjectFinder(ros::Nodelhandle* nodehandle): nh_(*nodehandle)
+PclObjectFinder::PclObjectFinder(ros::Nodelhandle* nodehandle): nh_(*nodehandle),
+    pclKinect_ptr_( new PointCloud<pcl::PointXYZ>),
+    pclTransformedKinect_ptr_(new PointCloud<pcl::PointXYZ>),
+    pclSelectedPoints_ptr_(new PointCloud<pcl::PointXYZ>),
+    pclTransformedSelectedPoints_ptr_(new PointCloud<pcl::PointXYZ>),
+    pclGenPurposeCloud_ptr_(new PointCloud<pcl::PointXYZ>)
+
 {
     // before initializing other member function, the pointer type variables need to be initialized at first
-    pclKinect_ptr_ = new PointCloud<pcl::PointXYZ>;
-    pclTransformedKinect_ptr_ = new PointCloud<pcl::PointXYZ>;
-    pclSelectedPoints_ptr_ = new PointCloud<pcl::PointXYZ>;
-    pclTransformedSelectedPoints_ptr_ = new PointCloud<pcl::PointXYZ>;
-
     initializeSubscribers();
     initializePublishers();
     got_kinect_cloud_=false;
@@ -26,13 +27,9 @@ PclObjectFinder::PclObjectFinder(ros::Nodelhandle* nodehandle): nh_(*nodehandle)
 }
 PclObjectFinder::~PclObjectFinder()
 {
-    delete pclKinect_ptr_;
-    delete pclTransformedKinect_ptr_;
-    delete pclSelectedPoints_ptr_;
-    delete pclTransformedSelectedPoints_ptr_;
 }
 
-void PclObjectFinder::returnSelectedPointCloud(Eigen::MatrixXd& points_mat)
+void PclObjectFinder::returnSelectedPointCloud(Eigen::MatrixXf& points_mat)
 {
     // transform the point cloud data acquired from selectCB to point cloud data wrt torso frame
     transformPointCloudWrtTorso(pclKinect_ptr_, pclTransformedSelectedPoints_ptr_);
@@ -40,44 +37,44 @@ void PclObjectFinder::returnSelectedPointCloud(Eigen::MatrixXd& points_mat)
     convertPclToEigen(pclTransformedSelectedPoints_ptr_, &points_mat);
 }
 
-Eigen::Vector3d PclObjectFinder::findCentroid(Eigen::MatrixXd* points_mat)
+Eigen::Vector3f PclObjectFinder::findCentroid(Eigen::MatrixXf* points_mat)
 {
     // first compute the centroid of the selected point cloud data
-    Eigen::Vector3d centroid_vec;
+    Eigen::Vector3f centroid_vec;
     // initializing the element in centroid vector all as zero
-    centroid_vec = Eigen::MatrixXd::Zero(3,1);
+    centroid_vec = Eigen::MatrixXf::Zero(3,1);
     // add all the selected point cloud data (points) together
-    int npts = *points_mat.cols();
+    int npts = points_mat -> cols();
     for (int i = 0; i < npts; ++i)
     {
-        centroid_vec += *points_mat.cols(i);
+        centroid_vec += points_mat -> col(i);
     }
     // divided the sum matrix by the number of points to get centroid
     centroid_vec /= npts;
     return centroid_vec;
 }
 
-void PclObjectFinder::fitPointsToPlane(Eigen::MatrixXd* points_mat,
-        Eigen::Vector3d &plane_normal, double &plane_dist);
+void PclObjectFinder::fitPointsToPlane(Eigen::MatrixXf* points_mat,
+        Eigen::Vector3f &plane_normal, double &plane_dist);
 {
     // first compute the centroid of the selected point cloud data
-    Eigen::Vector3d centroid_vec;
+    Eigen::Vector3f centroid_vec;
     centroid_vec = findCentroid(points_mat);
 
     // subtract the centroid from all points in points_mat;
-    Eigen::MatrixXd points_offset_mat = *points_mat;
+    Eigen::MatrixXf points_offset_mat = *points_mat;
     for (int i = 0; i < npts; ++i)
     {
-        points_offset_mat.cols(i) = points_offset_mat.cols(i) - centroid_vec;
+        points_offset_mat.col(i) = points_offset_mat.col(i) - centroid_vec;
     }
     // compute the covariance matrix
-    Eigen::Matrix3d covar_mat;
+    Eigen::Matrix3f covar_mat;
     covar_mat = points_offset_mat * points_offset_mat.transpose();
 
     // caompute the eigenvalue and eigenvector of the covariance matrix
-    Eigen::EigenSolver<Eigen::Matrix3d> es3f(covar_mat);
+    Eigen::EigenSolver<Eigen::Matrix3f> es3f(covar_mat);
     // get the real part of the eigen value
-    Eigen::VectorXd evals;
+    Eigen::VectorXf evals;
     evals = es3f.eigenvalue().real();
 
     // Eigen::Vector3cf complex_vec;
@@ -92,22 +89,27 @@ void PclObjectFinder::fitPointsToPlane(Eigen::MatrixXd* points_mat,
         {
             min_lambda = evals[i];
             i_min = i;
-            plane_normal = es3f.eigenvector().cols(i_min).real();
+            plane_normal = es3f.eigenvector().col(i_min).real();
         }
     }
     plane_dist = plane_normal.dot(centroid);
 }
 
-void PclObjectFinder::findPointsOnPlane(std::vector<Eigen::Vector3d>& points_vec_temp,
-            Eigen::Vector3d centroid_vec, double plane_dist)
+void PclObjectFinder::findPointsOnPlane(pcl::PointCloud<pcl::PointXYZ>::Ptr outputCloud,
+            Eigen::Vector3f centroid_vec, double plane_dist)
 {
+    // vector of type Vector3f to contain all points on the plane you selected a patch
+    std::vector<Eigen::Vector3f> points_vec_temp;
+    // to make sure the size of the vector reset to zero and content is clear
     points_vec_temp.clear();
-    Eigen::MatrixXd kinectCB_points_mat;
+    Eigen::MatrixXf kinectCB_points_mat;
     // transform the point cloud data acquired from kinectCB to point cloud data wrt torso frame
     transformPointCloudWrtTorso(pclKinect_ptr_, pclTransformedKinect_ptr_);
+    // make a copy of transformed kinect pcl data to do operation
+    copyCloud(pclTransformedKinect_ptr_, pclGenPurposeCloud_ptr_);
     // convert point cloud data to eigen type
-    convertPclToEigen(pclTransformedKinect_ptr_, &kinectCB_points_mat);
-    
+    convertPclToEigen(pclGenPurposeCloud_ptr_, &kinectCB_points_mat);
+
     double dist_btw_centroid;
     double dist_btw_centroid_x;
     double dist_btw_centroid_y;
@@ -121,23 +123,25 @@ void PclObjectFinder::findPointsOnPlane(std::vector<Eigen::Vector3d>& points_vec
     // std::vector<Eigen::Vector3d> points_vec_temp;
     double test_z;
     // find out the points that is close to top surface of beer
-    for (int col = 0; col < kinectCB_points_mat.cols(); ++col)
+    for (int col_num = 0; col_num < kinectCB_points_mat.cols(); ++col_num)
     {
-        test_z = kinectCB_points_mat.matrix()(col, 2);
+        test_z = kinectCB_points_mat.matrix()(col_num, 2);
         // find out the points that is close to top surface of beer
         if (test_z > est_centroid_height_dwlmt && test_z < est_centroid_height_uplmt)
         {
-            dist_btw_centroid_x = kinectCB_points_mat.matrix()(col, 0) - centroid_x;
-            dist_btw_centroid_y = kinectCB_points_mat.matrix()(col, 1) - centroid_y;
+            dist_btw_centroid_x = kinectCB_points_mat.matrix()(0, col_num) - centroid_x;
+            dist_btw_centroid_y = kinectCB_points_mat.matrix()(1, col_num) - centroid_y;
             dist_btw_centroid = sqrt(pow(dist_btw_centroid_x, 2) + pow(dist_btw_centroid_y, 2));
             // find out points btw centroid in horizental plane
-            if (dist_btw_centroid < R_GAZEBO_BEER + R_GAZEBO_BEER_TOL)
+            if (dist_btw_centroid < (R_GAZEBO_BEER + R_GAZEBO_BEER_TOL))
             {
-                points_vec_temp.push_back(kinectCB_points_mat.(col);
+                points_vec_temp.push_back(kinectCB_points_mat.col(col_num));
             }
         }
     }
-    convertEigenToPcl()
+    // convert operated vector Eigen::Vector3f to Pcl data type
+    convertEigenToPcl(&points_vec_temp, pclGenPurposeCloud_ptr_);
+    getGenPurposeCloud(outputCloud);
 }
 
 void PclObjectFinder::initializeSubscribers()
@@ -259,31 +263,56 @@ void PclObjectFinder::transformPointCloudWrtTorso(PointCloud<pcl::PointXYZ>::Ptr
 }
 
 void PclObjectFinder::convertPclToEigen(PointCloud<pcl::PointXYZ>::Ptr inputCloud,
-        Eigen::MatrixXd* pcl_to_eigen_mat);
+        Eigen::MatrixXf* pcl_to_eigen_mat);
 {
-    Eigen::MatrixXf pcl_to_eigen_matf;
     int npts = inputCloud -> points.size();
-    pcl_to_eigen_matf.resize(3, npts);
+    pcl_to_eigen_mat -> resize(3, npts);
     for (int i = 0; i < npts; ++i)
     {
-        pcl_to_eigen_matf.cols(i) = inputCloud -> points[i].getVector3fMap();
+        pcl_to_eigen_mat -> col(i) = inputCloud -> points[i].getVector3fMap();
     }
-    *pcl_to_eigen_mat = pcl_to_eigen_matf.cast<float>();
 }
 
-void PclObjectFinder::convertEigenToPcl(std::vector<Eigen::Vector3d>* eigen_to_pcl_vec, 
+void PclObjectFinder::convertEigenToPcl(std::vector<Eigen::Vector3f>* eigen_to_pcl_vec_ptr, 
         PointCloud<pcl::PointXYZ>::Ptr outputCloud)
 {
-    int npts = *eigen_to_pcl_vec.size();
+    int npts = eigen_to_pcl_vec -> size();
     for (int i = 0; i < npts; ++i)
     {
-        outputCloud -> points[i].getVector3fMap() = eigen_to_pcl_vec[i].cast<float>();
+        outputCloud -> points[i].getVector3fMap() = eigen_to_pcl_vec_ptr -> at(i);
     }
 }
-// double PclObjectFinder::disBtwPoints(double x_0, double y_0, double x, double y)
-// {
-//     double dist_x = x_0 - x;
-//     double dist_y = y_0 - y;
-//     double dist_btw_points = sqrt(pow(dist_x, 2) + pow(dist_y, 2));
-//     return dist_btw_points;
-// }
+
+// generic function to copy an input cloud to an output cloud
+// provide pointers to the two clouds output cloud will get resized
+void PclObjectFinder::copyCloud(PointCloud<pcl::PointXYZ>::Ptr inputCloud,
+        PointCloud<pcl::PointXYZ>::Ptr outputCloud)
+{
+    int npts = inputCloud -> points.size();  // how many points to extract?
+    outputCloud -> header = inputCloud -> header;
+    outputCloud -> is_dense = inputCloud -> is_dense;
+    outputCloud -> width = npts;
+    outputCloud -> height = 1;
+
+    cout << "copying cloud w/ npts =" << npts << endl;
+    outputCloud -> points.resize(npts);
+    for (int i = 0; i < npts; ++i) {
+        outputCloud -> points[i].getVector3fMap() = inputCloud -> points[i].getVector3fMap();
+    }
+}
+
+//same as above, but for general-purpose cloud
+void PclObjectFinder::getGenPurposeCloud(pcl::PointCloud<pcl::PointXYZ>::Ptr outputCloud)
+{
+    int npts = pclGenPurposeCloud_ptr_->points.size(); //how many points to extract?
+    outputCloud -> header = pclGenPurposeCloud_ptr_ -> header;
+    outputCloud -> is_dense = pclGenPurposeCloud_ptr_ -> is_dense;
+    outputCloud -> width = npts;
+    outputCloud -> height = 1;
+
+    cout << "copying cloud w/ npts =" << npts << endl;
+    outputCloud -> points.resize(npts);
+    for (int i = 0; i < npts; ++i) {
+        outputCloud -> points[i].getVector3fMap() = pclGenPurposeCloud_ptr_ -> points[i].getVector3fMap();
+    }
+} 
