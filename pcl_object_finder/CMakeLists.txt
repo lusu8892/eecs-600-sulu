@@ -147,7 +147,7 @@ add_executable(pcl_object_finder_main src/pcl_object_finder_main.cpp)
 add_dependencies(pcl_object_finder_main ${pcl_object_finder_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
 
 ## Specify libraries to link a library or executable target against
-target_link_libraries(pcl_object_finder_main pcl_object_finder ${catkin_LIBRARIES})
+target_link_libraries(pcl_object_finder_main pcl_object_finder ${catkin_LIBRARIES} ${PCL_LIBRARIES})
 
 #############
 ## Install ##

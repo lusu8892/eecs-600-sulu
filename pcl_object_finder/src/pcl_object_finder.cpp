@@ -1,13 +1,8 @@
 // Created by Su Lu on Nov, 2015.
 // Copyright @ 2015 Su Lu. All rights reserved.
-#include <ros/ros.h>
+
 #include <pcl_object_finder/pcl_object_finder.h>
-#include <string>
-#include <vector>
-#include <Eigen/Eigen>
-#include <Eigen/Dense>
-#include <Eigen/Geometry>
-#include <Eigen/Eigenvalues>
+
 
 
 PclObjectFinder::PclObjectFinder(ros::NodeHandle* nodehandle): nh_(*nodehandle),
@@ -23,10 +18,38 @@ PclObjectFinder::PclObjectFinder(ros::NodeHandle* nodehandle): nh_(*nodehandle),
     initializePublishers();
     got_kinect_cloud_=false;
     got_selected_points_=false;
+    tferr_ = true;
 
 }
 PclObjectFinder::~PclObjectFinder()
 {
+}
+void PclObjectFinder::getCurrentTransMatFromKinectPcToTorso(tf::StampedTransform& transMatrix,
+        Eigen::Affine3f& affineTransMatrix)
+{
+    ROS_INFO("waiting for tf between kinect_pc_frame and torso...");
+    while (tferr_)
+    {
+        tferr_ = false;
+        try
+        {
+
+            //The direction of the transform returned will be from the target_frame to the source_frame. 
+            //Which if applied to data, will transform data in the source_frame into the target_frame. See tf/CoordinateFrameConventions#Transform_Direction
+            tf_listener_.lookupTransform("torso", "kinect_pc_frame", ros::Time(0), transMatrix);
+        }
+        catch (tf::TransformException &exception)
+        {
+            ROS_ERROR("%s", exception.what());
+            tferr_ = true;
+            ros::Duration(0.5).sleep(); // sleep for half a second
+            ros::spinOnce();
+        }
+    }
+    // covert transformation matrix to Affine type
+    ROS_INFO("convert to Affine: ");
+    affineTransMatrix = transformTFToEigen(transMatrix);
+
 }
 
 void PclObjectFinder::returnSelectedPointCloud(Eigen::MatrixXf& points_mat)
@@ -63,6 +86,7 @@ void PclObjectFinder::fitPointsToPlane(Eigen::MatrixXf* points_mat,
 
     // subtract the centroid from all points in points_mat;
     Eigen::MatrixXf points_offset_mat = *points_mat;
+    int npts = points_offset_mat.cols();
     for (int i = 0; i < npts; ++i)
     {
         points_offset_mat.col(i) = points_offset_mat.col(i) - centroid_vec;
@@ -71,16 +95,16 @@ void PclObjectFinder::fitPointsToPlane(Eigen::MatrixXf* points_mat,
     Eigen::Matrix3f covar_mat;
     covar_mat = points_offset_mat * points_offset_mat.transpose();
 
-    // caompute the eigenvalue and eigenvector of the covariance matrix
+    // caompute the eigenvalues and eigenvectors of the covariance matrix
     Eigen::EigenSolver<Eigen::Matrix3f> es3f(covar_mat);
     // get the real part of the eigen value
     Eigen::VectorXf evals;
-    evals = es3f.eigenvalue().real();
+    evals = es3f.eigenvalues().real();
 
     // Eigen::Vector3cf complex_vec;
-    // complex_vec = es3f.eigenvector().cols(0);
+    // complex_vec = es3f.eigenvectors().cols(0);
     // plane_normal = complex_vec;
-    // find the most smallest eigenvalue and its corresponding eigenvector
+    // find the most smallest eigenvalues and its corresponding eigenvectors
     double min_lambda = evals[0];
     int i_min = 0;
     for (int i = 0; i < 3; ++i)
@@ -89,14 +113,14 @@ void PclObjectFinder::fitPointsToPlane(Eigen::MatrixXf* points_mat,
         {
             min_lambda = evals[i];
             i_min = i;
-            plane_normal = es3f.eigenvector().col(i_min).real();
+            plane_normal = es3f.eigenvectors().col(i_min).real();
         }
     }
-    plane_dist = plane_normal.dot(centroid);
+    plane_dist = plane_normal.dot(centroid_vec);
 }
 
 void PclObjectFinder::findPointsOnPlane(pcl::PointCloud<pcl::PointXYZ>::Ptr outputCloud,
-            Eigen::Vector3f centroid_vec, double plane_dist)
+            const Eigen::Vector3f& centroid_vec, const double& plane_dist)
 {
     // vector of type Vector3f to contain all points on the plane you selected a patch
     std::vector<Eigen::Vector3f> points_vec_temp;
@@ -188,7 +212,7 @@ void PclObjectFinder::selectCB(const sensor_msgs::PointCloud2ConstPtr& selectedC
     if (!got_selected_points_)
     {
         // convert sensor_msgs type point cloud data to pcl type point cloud
-        pcd::fromROSMsg(*selectedCloud, *pclSelectedPoints_ptr_);
+        pcl::fromROSMsg(*selectedCloud, *pclSelectedPoints_ptr_);
         ROS_INFO("selectCB: got cloud with %d * %d points", (int) pclSelectedPoints_ptr_ -> width,
             (int) pclSelectedPoints_ptr_ -> height);
         got_selected_points_ = true;
@@ -226,7 +250,7 @@ void PclObjectFinder::transformCloud(pcl::PointCloud<pcl::PointXYZ>::Ptr inputCl
     outputCloud -> width = inputCloud -> width;
     outputCloud -> height = inputCloud -> height;
     int npts = inputCloud -> points.size();
-    outputCloud -> points.resize();
+    outputCloud -> points.resize(npts);
 
     // getVector3fMap() READING points from a pointCloud, with conversions to Eigen compatible data
     // Or allowing to WRITE points to a pointcloud, with conversions from Eigen type data.
@@ -241,16 +265,12 @@ void PclObjectFinder::transformPointCloudWrtTorso(pcl::PointCloud<pcl::PointXYZ>
 {
     Eigen::Affine3f A;  // Affine type transformation matrix
 
-    // holder for processed point clouds
-    // pcl::PointCloud<pcl::PointXYZ>::Ptr cloud_transformed(new pcl::PointCloud<pcl::PointXYZ>);
-
     // get the tranformation matrix
     ROS_INFO("get current transform from sensor frame to torso frame: ");
-    tf_listener_.lookupTransform("torso", "kinect_pc_frame", ros::Time(0), tf_sensor_frame_to_torso_frame_);
+    getCurrentTransMatFromKinectPcToTorso(tf_sensor_frame_to_torso_frame_, A);
 
     // covert transformation matrix to Affine type
-    ROS_INFO("convert to Affine: ");
-    A = transformTFToEigen(tf_sensor_frame_to_torso_frame_);
+
     ROS_INFO("resulting Affine: rotation, translation");
     ROS_INFO_STREAM("the orientation" << A.linear());
     ROS_INFO_STREAM("the translation" << A.translation().transpose());
@@ -264,7 +284,7 @@ void PclObjectFinder::transformPointCloudWrtTorso(pcl::PointCloud<pcl::PointXYZ>
 }
 
 void PclObjectFinder::convertPclToEigen(pcl::PointCloud<pcl::PointXYZ>::Ptr inputCloud,
-        Eigen::MatrixXf* pcl_to_eigen_mat);
+        Eigen::MatrixXf* pcl_to_eigen_mat)
 {
     int npts = inputCloud -> points.size();
     pcl_to_eigen_mat -> resize(3, npts);
@@ -277,7 +297,7 @@ void PclObjectFinder::convertPclToEigen(pcl::PointCloud<pcl::PointXYZ>::Ptr inpu
 void PclObjectFinder::convertEigenToPcl(std::vector<Eigen::Vector3f>* eigen_to_pcl_vec_ptr, 
         pcl::PointCloud<pcl::PointXYZ>::Ptr outputCloud)
 {
-    int npts = eigen_to_pcl_vec -> size();
+    int npts = eigen_to_pcl_vec_ptr -> size();
     for (int i = 0; i < npts; ++i)
     {
         outputCloud -> points[i].getVector3fMap() = eigen_to_pcl_vec_ptr -> at(i);
@@ -295,7 +315,7 @@ void PclObjectFinder::copyCloud(pcl::PointCloud<pcl::PointXYZ>::Ptr inputCloud,
     outputCloud -> width = npts;
     outputCloud -> height = 1;
 
-    cout << "copying cloud w/ npts =" << npts << endl;
+    ROS_INFO("copying cloud w/ npts = %d", npts);
     outputCloud -> points.resize(npts);
     for (int i = 0; i < npts; ++i) {
         outputCloud -> points[i].getVector3fMap() = inputCloud -> points[i].getVector3fMap();
@@ -311,7 +331,7 @@ void PclObjectFinder::getGenPurposeCloud(pcl::PointCloud<pcl::PointXYZ>::Ptr out
     outputCloud -> width = npts;
     outputCloud -> height = 1;
 
-    cout << "copying cloud w/ npts =" << npts << endl;
+    ROS_INFO("copying cloud w/ npts = %d", npts);
     outputCloud -> points.resize(npts);
     for (int i = 0; i < npts; ++i) {
         outputCloud -> points[i].getVector3fMap() = pclGenPurposeCloud_ptr_ -> points[i].getVector3fMap();

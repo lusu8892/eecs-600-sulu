@@ -45,6 +45,7 @@ class PclObjectFinder
 public:
     PclObjectFinder(ros::NodeHandle* nodehandle);
     ~PclObjectFinder();
+    void getCurrentTransMatFromKinectPcToTorso(tf::StampedTransform& transformMatrix, Eigen::Affine3f& affineTransMatrix);
     void returnSelectedPointCloud(Eigen::MatrixXf& points_mat);
     Eigen::Vector3f findCentroid(Eigen::MatrixXf* points_mat);
     void resetGotKinectCloud() {got_kinect_cloud_= false;};
@@ -53,7 +54,7 @@ public:
     bool gotSelectedPoints() {return got_selected_points_;};
     void fitPointsToPlane(Eigen::MatrixXf* points_mat, Eigen::Vector3f &plane_normal, double &plane_dist);
 
-    void findPointsOnPlane(std::vector<Eigen::Vector3f>& points_vec_temp, Eigen::Vector3f centroid_vec, double plane_dist);
+    void findPointsOnPlane(pcl::PointCloud<pcl::PointXYZ>::Ptr outputCloud, const Eigen::Vector3f& centroid_vec, const double& plane_dist);
 
 private:
     ros::NodeHandle nh_;
@@ -72,13 +73,14 @@ private:
 
     tf::StampedTransform tf_sensor_frame_to_torso_frame_;
     tf::TransformListener tf_listener_;
+    bool tferr_;
 
     bool got_kinect_cloud_;
     bool got_selected_points_;
     // member methods as well:
     void initializeSubscribers(); // we will define some helper methods to encapsulate the gory details of initializing subscribers, publishers and services
     void initializePublishers();
-    //void initializeServices();
+    // void initializeServices();
 
     void kinectCB(const sensor_msgs::PointCloud2ConstPtr& kinectCloud);
     void selectCB(const sensor_msgs::PointCloud2ConstPtr& selectedCloud);
