@@ -10,12 +10,12 @@
 #include <Eigen/Eigenvalues>
 
 
-PclObjectFinder::PclObjectFinder(ros::Nodelhandle* nodehandle): nh_(*nodehandle),
-    pclKinect_ptr_( new PointCloud<pcl::PointXYZ>),
-    pclTransformedKinect_ptr_(new PointCloud<pcl::PointXYZ>),
-    pclSelectedPoints_ptr_(new PointCloud<pcl::PointXYZ>),
-    pclTransformedSelectedPoints_ptr_(new PointCloud<pcl::PointXYZ>),
-    pclGenPurposeCloud_ptr_(new PointCloud<pcl::PointXYZ>)
+PclObjectFinder::PclObjectFinder(ros::NodeHandle* nodehandle): nh_(*nodehandle),
+    pclKinect_ptr_( new pcl::PointCloud<pcl::PointXYZ>),
+    pclTransformedKinect_ptr_(new pcl::PointCloud<pcl::PointXYZ>),
+    pclSelectedPoints_ptr_(new pcl::PointCloud<pcl::PointXYZ>),
+    pclTransformedSelectedPoints_ptr_(new pcl::PointCloud<pcl::PointXYZ>),
+    pclGenPurposeCloud_ptr_(new pcl::PointCloud<pcl::PointXYZ>)
 
 {
     // before initializing other member function, the pointer type variables need to be initialized at first
@@ -55,7 +55,7 @@ Eigen::Vector3f PclObjectFinder::findCentroid(Eigen::MatrixXf* points_mat)
 }
 
 void PclObjectFinder::fitPointsToPlane(Eigen::MatrixXf* points_mat,
-        Eigen::Vector3f &plane_normal, double &plane_dist);
+        Eigen::Vector3f &plane_normal, double &plane_dist)
 {
     // first compute the centroid of the selected point cloud data
     Eigen::Vector3f centroid_vec;
@@ -141,6 +141,7 @@ void PclObjectFinder::findPointsOnPlane(pcl::PointCloud<pcl::PointXYZ>::Ptr outp
     }
     // convert operated vector Eigen::Vector3f to Pcl data type
     convertEigenToPcl(&points_vec_temp, pclGenPurposeCloud_ptr_);
+    // decorate Pcl data with header, is_dense, width, height and points
     getGenPurposeCloud(outputCloud);
 }
 
@@ -217,8 +218,8 @@ Eigen::Affine3f PclObjectFinder::transformTFToEigen(const tf::Transform &t)
     return e;
 }
 
-void PclObjectFinder::transformCloud(PointCloud<pcl::PointXYZ>::Ptr inputCloud, Eigen::Affine3f A,
-        PointCloud<pcl::PointXYZ>::Ptr outputCloud)
+void PclObjectFinder::transformCloud(pcl::PointCloud<pcl::PointXYZ>::Ptr inputCloud, Eigen::Affine3f A,
+        pcl::PointCloud<pcl::PointXYZ>::Ptr outputCloud)
 {
     outputCloud -> header = inputCloud -> header;
     outputCloud -> is_dense = inputCloud -> is_dense;
@@ -235,8 +236,8 @@ void PclObjectFinder::transformCloud(PointCloud<pcl::PointXYZ>::Ptr inputCloud, 
     }
 }
 
-void PclObjectFinder::transformPointCloudWrtTorso(PointCloud<pcl::PointXYZ>::Ptr inputCloud,
-        PointCloud<pcl::PointXYZ>::Ptr cloud_transformed)
+void PclObjectFinder::transformPointCloudWrtTorso(pcl::PointCloud<pcl::PointXYZ>::Ptr inputCloud,
+        pcl::PointCloud<pcl::PointXYZ>::Ptr cloud_transformed)
 {
     Eigen::Affine3f A;  // Affine type transformation matrix
 
@@ -262,7 +263,7 @@ void PclObjectFinder::transformPointCloudWrtTorso(PointCloud<pcl::PointXYZ>::Ptr
     pcl::io::savePCDFileASCII("snapshot_wrt_torso", *cloud_transformed);
 }
 
-void PclObjectFinder::convertPclToEigen(PointCloud<pcl::PointXYZ>::Ptr inputCloud,
+void PclObjectFinder::convertPclToEigen(pcl::PointCloud<pcl::PointXYZ>::Ptr inputCloud,
         Eigen::MatrixXf* pcl_to_eigen_mat);
 {
     int npts = inputCloud -> points.size();
@@ -274,7 +275,7 @@ void PclObjectFinder::convertPclToEigen(PointCloud<pcl::PointXYZ>::Ptr inputClou
 }
 
 void PclObjectFinder::convertEigenToPcl(std::vector<Eigen::Vector3f>* eigen_to_pcl_vec_ptr, 
-        PointCloud<pcl::PointXYZ>::Ptr outputCloud)
+        pcl::PointCloud<pcl::PointXYZ>::Ptr outputCloud)
 {
     int npts = eigen_to_pcl_vec -> size();
     for (int i = 0; i < npts; ++i)
@@ -285,8 +286,8 @@ void PclObjectFinder::convertEigenToPcl(std::vector<Eigen::Vector3f>* eigen_to_p
 
 // generic function to copy an input cloud to an output cloud
 // provide pointers to the two clouds output cloud will get resized
-void PclObjectFinder::copyCloud(PointCloud<pcl::PointXYZ>::Ptr inputCloud,
-        PointCloud<pcl::PointXYZ>::Ptr outputCloud)
+void PclObjectFinder::copyCloud(pcl::PointCloud<pcl::PointXYZ>::Ptr inputCloud,
+        pcl::PointCloud<pcl::PointXYZ>::Ptr outputCloud)
 {
     int npts = inputCloud -> points.size();  // how many points to extract?
     outputCloud -> header = inputCloud -> header;

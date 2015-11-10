@@ -23,8 +23,7 @@ add_definitions(${EIGEN_DEFINITIONS})
 include_directories(
   ${Eigen_INCLUDE_DIRS}
   ${PCL_INCLUDE_DIRS}
-  ##${PROJECT_NAME}/include
-  #${baxter_kinematics_INCLUDE_DIRS}
+  ${PROJECT_NAME}/include
 )
 
 ## System dependencies are found with CMake's conventions
@@ -117,10 +116,10 @@ include_directories(
 ## CATKIN_DEPENDS: catkin_packages dependent projects also need
 ## DEPENDS: system dependencies of this project that dependent projects also need
 catkin_package(
-#  INCLUDE_DIRS include
-#  LIBRARIES pcl_object_finder
-#  CATKIN_DEPENDS cmake_modules roscpp std_msgs
-#  DEPENDS system_lib
+  INCLUDE_DIRS include
+  LIBRARIES pcl_object_finder
+  CATKIN_DEPENDS cmake_modules roscpp std_msgs
+  DEPENDS system_lib
 )
 
 ###########
@@ -130,14 +129,10 @@ catkin_package(
 ## Specify additional locations of header files
 ## Your package locations should be listed before other locations
 # include_directories(include)
-include_directories(
-  ${catkin_INCLUDE_DIRS}
-)
-
+## include_directories( ${catkin_INCLUDE_DIRS})
+include_directories( include ${catkin_INCLUDE_DIRS})
 ## Declare a C++ library
-# add_library(pcl_object_finder
-#   src/${PROJECT_NAME}/pcl_object_finder.cpp
-# )
+add_library(pcl_object_finder src/pcl_object_finder.cpp)
 
 ## Add cmake target dependencies of the library
 ## as an example, code may need to be generated before libraries
@@ -145,16 +140,14 @@ include_directories(
 # add_dependencies(pcl_object_finder ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
 
 ## Declare a C++ executable
-# add_executable(pcl_object_finder_node src/pcl_object_finder_node.cpp)
+add_executable(pcl_object_finder_main src/pcl_object_finder_main.cpp)
 
 ## Add cmake target dependencies of the executable
 ## same as for the library above
-# add_dependencies(pcl_object_finder_node ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
+add_dependencies(pcl_object_finder_main ${pcl_object_finder_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
 
 ## Specify libraries to link a library or executable target against
-# target_link_libraries(pcl_object_finder_node
-#   ${catkin_LIBRARIES}
-# )
+target_link_libraries(pcl_object_finder_main pcl_object_finder ${catkin_LIBRARIES})
 
 #############
 ## Install ##

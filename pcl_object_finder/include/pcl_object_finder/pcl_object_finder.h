@@ -43,13 +43,14 @@ const double H_GAZEBO_BEER_TOL = 0.001;
 class PclObjectFinder
 {
 public:
-    PclObjectFinder(ros::Nodelhandle* nodehandle)
+    PclObjectFinder(ros::NodeHandle* nodehandle);
     ~PclObjectFinder();
-    void returnSelectedPointCloud(Eigen::MatrixXf& points_mat)
+    void returnSelectedPointCloud(Eigen::MatrixXf& points_mat);
     Eigen::Vector3f findCentroid(Eigen::MatrixXf* points_mat);
-
+    void resetGotKinectCloud() {got_kinect_cloud_= false;};
     void resetGotSelectedPoints() {got_selected_points_= false;};
-    bool gotSselectedPoints() {return got_selected_points_;};
+    bool gotKinectCloud() { return got_kinect_cloud_; };
+    bool gotSelectedPoints() {return got_selected_points_;};
     void fitPointsToPlane(Eigen::MatrixXf* points_mat, Eigen::Vector3f &plane_normal, double &plane_dist);
 
     void findPointsOnPlane(std::vector<Eigen::Vector3f>& points_vec_temp, Eigen::Vector3f centroid_vec, double plane_dist);
@@ -82,13 +83,13 @@ private:
     void kinectCB(const sensor_msgs::PointCloud2ConstPtr& kinectCloud);
     void selectCB(const sensor_msgs::PointCloud2ConstPtr& selectedCloud);
     Eigen::Affine3f transformTFToEigen(const tf::Transform &t);
-    void transformCloud(PointCloud<pcl::PointXYZ>::Ptr inputCloud, Eigen::Affine3f A,
-        PointCloud<pcl::PointXYZ>::Ptr outputCloud);
-    void transformPointCloudWrtTorso(PointCloud<pcl::PointXYZ>::Ptr inputCloud, PointCloud<pcl::PointXYZ>::Ptr cloud_transformed);
-    void convertPclToEigen(PointCloud<pcl::PointXYZ>::Ptr inputCloud, Eigen::MatrixXf* points_mat);
-    void convertEigenToPcl(Eigen::MatrixXf* points_mat, PointCloud<pcl::PointXYZ>::Ptr outCloud);
-    void convertEigenToPcl(std::vector<Eigen::Vector3f>* eigen_to_pcl_vec, PointCloud<pcl::PointXYZ>::Ptr outputCloud);
+    void transformCloud(pcl::PointCloud<pcl::PointXYZ>::Ptr inputCloud, Eigen::Affine3f A, pcl::PointCloud<pcl::PointXYZ>::Ptr outputCloud);
+    void transformPointCloudWrtTorso(pcl::PointCloud<pcl::PointXYZ>::Ptr inputCloud, pcl::PointCloud<pcl::PointXYZ>::Ptr cloud_transformed);
+    void convertPclToEigen(pcl::PointCloud<pcl::PointXYZ>::Ptr inputCloud, Eigen::MatrixXf* points_mat);
+    void convertEigenToPcl(Eigen::MatrixXf* points_mat, pcl::PointCloud<pcl::PointXYZ>::Ptr outCloud);
+    void convertEigenToPcl(std::vector<Eigen::Vector3f>* eigen_to_pcl_vec, pcl::PointCloud<pcl::PointXYZ>::Ptr outputCloud);
     // double distBtwPoints(double x_0, double y_0, double x, double y);
     void getGenPurposeCloud(pcl::PointCloud<pcl::PointXYZ>::Ptr outputCloud);
-    void copyCloud(PointCloud<pcl::PointXYZ>::Ptr inputCloud, PointCloud<pcl::PointXYZ>::Ptr outputCloud);
+    void copyCloud(pcl::PointCloud<pcl::PointXYZ>::Ptr inputCloud, pcl::PointCloud<pcl::PointXYZ>::Ptr outputCloud);
 };
+#endif
