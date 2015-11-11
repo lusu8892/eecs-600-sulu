@@ -22,7 +22,7 @@ int main(int argc, char** argv) {
     //set up a publisher to display clouds in rviz:
     ros::Publisher pub_cloud = nh.advertise<sensor_msgs::PointCloud2>("/pcl_cloud_display", 1);
     //pcl::PointCloud<pcl::PointXYZ> & outputCloud
-    pcl::PointCloud<pcl::PointXYZ>::Ptr display_cloud; // instantiate a pointcloud object, which will be used for display in rviz
+    pcl::PointCloud<pcl::PointXYZ> display_cloud; // instantiate a pointcloud object, which will be used for display in rviz
     sensor_msgs::PointCloud2 pcl2_display_cloud; //(new sensor_msgs::PointCloud2); //corresponding data type for ROS message
     while(ros::ok())
     {
@@ -32,19 +32,23 @@ int main(int argc, char** argv) {
             pclObjectFinder.returnSelectedPointCloud(selected_points_mat);
 
             pclObjectFinder.resetGotSelectedPoints();
-
+            ROS_INFO("trying to fit plane");
             Eigen::Vector3f plane_normal;
             double plane_dist = 0.0;
-            pclObjectFinder.fitPointsToPlane(&selected_points_mat, plane_normal, plane_dist);
-
+            pclObjectFinder.fitPointsToPlane(selected_points_mat, plane_normal, plane_dist);
+            
+            ROS_INFO("trying to get back the centroid");
             Eigen::Vector3f centroid_vec;
-            centroid_vec = pclObjectFinder.findCentroid(&selected_points_mat);
+            centroid_vec = pclObjectFinder.findCentroid(selected_points_mat);
 
+            ROS_INFO("trying to find all points on the seletec surface");
             std::vector<Eigen::Vector3d> points_vec;
             pclObjectFinder.findPointsOnPlane(display_cloud, centroid_vec, plane_dist);
 
-            pcl::toROSMsg(*display_cloud, pcl2_display_cloud); //convert datatype to compatible ROS message type for publication
-            pcl2_display_cloud.header.stamp = ros::Time::now(); //update the time stamp, so rviz does not complain        
+            ROS_INFO("converting the Pcl data to ROS Pcl data");
+            pcl::toROSMsg(display_cloud, pcl2_display_cloud); //convert datatype to compatible ROS message type for publication
+            pcl2_display_cloud.header.stamp = ros::Time::now(); //update the time stamp, so rviz does not complain
+            pcl2_display_cloud.header.frame_id = "torso";
             pub_cloud.publish(pcl2_display_cloud); //publish a point cloud that can be viewed in rviz (under topic pcl_cloud_display)
 
             ros::Duration(0.5).sleep(); // sleep for half a second

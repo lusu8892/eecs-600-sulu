@@ -55,37 +55,38 @@ void PclObjectFinder::getCurrentTransMatFromKinectPcToTorso(tf::StampedTransform
 void PclObjectFinder::returnSelectedPointCloud(Eigen::MatrixXf& points_mat)
 {
     // transform the point cloud data acquired from selectCB to point cloud data wrt torso frame
-    transformPointCloudWrtTorso(pclKinect_ptr_, pclTransformedSelectedPoints_ptr_);
+    transformPointCloudWrtTorso(pclSelectedPoints_ptr_, pclTransformedSelectedPoints_ptr_);
     // convert point cloud data to eigen type
     convertPclToEigen(pclTransformedSelectedPoints_ptr_, &points_mat);
 }
 
-Eigen::Vector3f PclObjectFinder::findCentroid(Eigen::MatrixXf* points_mat)
+Eigen::Vector3f PclObjectFinder::findCentroid(const Eigen::MatrixXf& points_mat)
 {
     // first compute the centroid of the selected point cloud data
     Eigen::Vector3f centroid_vec;
     // initializing the element in centroid vector all as zero
     centroid_vec = Eigen::MatrixXf::Zero(3,1);
     // add all the selected point cloud data (points) together
-    int npts = points_mat -> cols();
+    int npts = points_mat.cols();
+    ROS_INFO("The selected points column number = %d", npts);
     for (int i = 0; i < npts; ++i)
     {
-        centroid_vec += points_mat -> col(i);
+        centroid_vec += points_mat.col(i);
     }
     // divided the sum matrix by the number of points to get centroid
     centroid_vec /= npts;
     return centroid_vec;
 }
 
-void PclObjectFinder::fitPointsToPlane(Eigen::MatrixXf* points_mat,
+void PclObjectFinder::fitPointsToPlane(const Eigen::MatrixXf& points_mat,
         Eigen::Vector3f &plane_normal, double &plane_dist)
 {
     // first compute the centroid of the selected point cloud data
     Eigen::Vector3f centroid_vec;
     centroid_vec = findCentroid(points_mat);
-
+    ROS_INFO("the beer plane height is = %f", centroid_vec[2]);
     // subtract the centroid from all points in points_mat;
-    Eigen::MatrixXf points_offset_mat = *points_mat;
+    Eigen::MatrixXf points_offset_mat = points_mat;
     int npts = points_offset_mat.cols();
     for (int i = 0; i < npts; ++i)
     {
@@ -119,7 +120,7 @@ void PclObjectFinder::fitPointsToPlane(Eigen::MatrixXf* points_mat,
     plane_dist = plane_normal.dot(centroid_vec);
 }
 
-void PclObjectFinder::findPointsOnPlane(pcl::PointCloud<pcl::PointXYZ>::Ptr outputCloud,
+void PclObjectFinder::findPointsOnPlane(pcl::PointCloud<pcl::PointXYZ>& outputCloud,
             const Eigen::Vector3f& centroid_vec, const double& plane_dist)
 {
     // vector of type Vector3f to contain all points on the plane you selected a patch
@@ -140,31 +141,58 @@ void PclObjectFinder::findPointsOnPlane(pcl::PointCloud<pcl::PointXYZ>::Ptr outp
     double centroid_x = centroid_vec[0];
     double centroid_y = centroid_vec[1];
     double centroid_z = centroid_vec[2];
+    ROS_INFO("the beer plane height is = %f", centroid_z);
+
+    int npts = kinectCB_points_mat.cols();
+    ROS_INFO("the matrix column number = %d", npts);
+
     // set height tolerance around the centroid height (z) as central value
-    double est_centroid_height_uplmt = centroid_z + H_GAZEBO_BEER_TOL;
-    double est_centroid_height_dwlmt = centroid_z - H_GAZEBO_BEER_TOL;
+    double est_centroid_height_uplmt = centroid_z + GENERAL_TOL;
+    double est_centroid_height_dwlmt = centroid_z - GENERAL_TOL;
+    double beer_est_height_uplmt = H_GAZEBO_BEER_WRT_TORSO + H_GAZEBO_BEER_TOL;
+    double beer_est_height_dwlmt = H_GAZEBO_BEER_WRT_TORSO - H_GAZEBO_BEER_TOL;
     // // declare a vector of type Eigen::Vector3d used to hold points which its height close to beer
     // std::vector<Eigen::Vector3d> points_vec_temp;
     double test_z;
     // find out the points that is close to top surface of beer
-    for (int col_num = 0; col_num < kinectCB_points_mat.cols(); ++col_num)
+
+    for (int col_num = 0; col_num < npts; ++col_num)
     {
-        test_z = kinectCB_points_mat.matrix()(col_num, 2);
+        // ROS_INFO("checking the column number is = %d", col_num);
+        test_z = kinectCB_points_mat(2, col_num);
         // find out the points that is close to top surface of beer
         if (test_z > est_centroid_height_dwlmt && test_z < est_centroid_height_uplmt)
         {
-            dist_btw_centroid_x = kinectCB_points_mat.matrix()(0, col_num) - centroid_x;
-            dist_btw_centroid_y = kinectCB_points_mat.matrix()(1, col_num) - centroid_y;
-            dist_btw_centroid = sqrt(pow(dist_btw_centroid_x, 2) + pow(dist_btw_centroid_y, 2));
-            // find out points btw centroid in horizental plane
-            if (dist_btw_centroid < (R_GAZEBO_BEER + R_GAZEBO_BEER_TOL))
+            if (test_z > beer_est_height_dwlmt && test_z < beer_est_height_uplmt)
+            {                // ROS_INFO("the z value checking is %f", test_z);
+                dist_btw_centroid_x = kinectCB_points_mat(0, col_num) - centroid_x;
+                dist_btw_centroid_y = kinectCB_points_mat(1, col_num) - centroid_y;
+                dist_btw_centroid = sqrt(pow(dist_btw_centroid_x, 2) + pow(dist_btw_centroid_y, 2));
+                // find out points btw centroid in horizental plane
+                if (dist_btw_centroid < (R_GAZEBO_BEER + R_GAZEBO_BEER_TOL))
+                {
+                    points_vec_temp.push_back(kinectCB_points_mat.col(col_num));
+                }
+            }
+            else
             {
                 points_vec_temp.push_back(kinectCB_points_mat.col(col_num));
             }
         }
+        
+        
+        // else
+        // {
+        //     points_vec_temp.push_back(kinectCB_points_mat.col(col_num));
+        // }
     }
+    // ROS_INFO("finish checking");
     // convert operated vector Eigen::Vector3f to Pcl data type
-    convertEigenToPcl(&points_vec_temp, pclGenPurposeCloud_ptr_);
+    convertEigenToPcl(points_vec_temp, pclGenPurposeCloud_ptr_);
+    // ROS_INFO("pclGenPurposeCloud_ptr_ = %d", pclGenPurposeCloud_ptr_ -> points.size());
+    // ROS_INFO("finish push_back");
+
+
     // decorate Pcl data with header, is_dense, width, height and points
     getGenPurposeCloud(outputCloud);
 }
@@ -287,6 +315,7 @@ void PclObjectFinder::convertPclToEigen(pcl::PointCloud<pcl::PointXYZ>::Ptr inpu
         Eigen::MatrixXf* pcl_to_eigen_mat)
 {
     int npts = inputCloud -> points.size();
+    ROS_INFO("the points size = %d", npts);
     pcl_to_eigen_mat -> resize(3, npts);
     for (int i = 0; i < npts; ++i)
     {
@@ -294,14 +323,17 @@ void PclObjectFinder::convertPclToEigen(pcl::PointCloud<pcl::PointXYZ>::Ptr inpu
     }
 }
 
-void PclObjectFinder::convertEigenToPcl(std::vector<Eigen::Vector3f>* eigen_to_pcl_vec_ptr, 
+void PclObjectFinder::convertEigenToPcl(const std::vector<Eigen::Vector3f>& eigen_to_pcl_vec,
         pcl::PointCloud<pcl::PointXYZ>::Ptr outputCloud)
 {
-    int npts = eigen_to_pcl_vec_ptr -> size();
+    int npts = eigen_to_pcl_vec.size();
+    outputCloud -> points.resize(npts);
+    ROS_INFO("the vector size is = %d", npts);
     for (int i = 0; i < npts; ++i)
     {
-        outputCloud -> points[i].getVector3fMap() = eigen_to_pcl_vec_ptr -> at(i);
+        outputCloud -> points[i].getVector3fMap() = eigen_to_pcl_vec[i];
     }
+
 }
 
 // generic function to copy an input cloud to an output cloud
@@ -323,17 +355,19 @@ void PclObjectFinder::copyCloud(pcl::PointCloud<pcl::PointXYZ>::Ptr inputCloud,
 }
 
 //same as above, but for general-purpose cloud
-void PclObjectFinder::getGenPurposeCloud(pcl::PointCloud<pcl::PointXYZ>::Ptr outputCloud)
+void PclObjectFinder::getGenPurposeCloud(pcl::PointCloud<pcl::PointXYZ>& outputCloud)
 {
     int npts = pclGenPurposeCloud_ptr_->points.size(); //how many points to extract?
-    outputCloud -> header = pclGenPurposeCloud_ptr_ -> header;
-    outputCloud -> is_dense = pclGenPurposeCloud_ptr_ -> is_dense;
-    outputCloud -> width = npts;
-    outputCloud -> height = 1;
+    ROS_INFO("the total number of points on beer can = %d", npts);
+    outputCloud.header = pclGenPurposeCloud_ptr_ -> header;
+    outputCloud.is_dense = pclGenPurposeCloud_ptr_ -> is_dense;
+    outputCloud.width = npts;
+    outputCloud.height = 1;
+
 
     ROS_INFO("copying cloud w/ npts = %d", npts);
-    outputCloud -> points.resize(npts);
+    outputCloud.points.resize(npts);
     for (int i = 0; i < npts; ++i) {
-        outputCloud -> points[i].getVector3fMap() = pclGenPurposeCloud_ptr_ -> points[i].getVector3fMap();
+        outputCloud.points[i].getVector3fMap() = pclGenPurposeCloud_ptr_ -> points[i].getVector3fMap();
     }
 } 
