@@ -37,6 +37,12 @@
 #include <pcl_ros/transforms.h>
 #include <pcl-1.7/pcl/impl/point_types.hpp>
 
+const double R_GAZEBO_BEER = 0.06; //estimated from ruler tool...example to fit a cylinder of this radius to data
+const double R_GAZEBO_BEER_TOL = 0.01;
+const double H_GAZEBO_BEER_WRT_TORSO = 0.07500;
+const double H_GAZEBO_BEER_TOL = 0.001;
+const double GENERAL_TOL = 0.001;
+
 using namespace std;  //just to avoid requiring std::, Eigen:: ...
 using namespace Eigen;
 using namespace pcl;

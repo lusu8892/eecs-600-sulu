@@ -245,6 +245,7 @@ void CwruPclUtils::get_transformed_selected_points(pcl::PointCloud<pcl::PointXYZ
 void CwruPclUtils::get_gen_purpose_cloud(pcl::PointCloud<pcl::PointXYZ> & outputCloud ) {
     int npts = pclGenPurposeCloud_ptr_->points.size(); //how many points to extract?
     outputCloud.header = pclGenPurposeCloud_ptr_->header;
+    outputCloud.header.frame_id = "torso";
     outputCloud.is_dense = pclGenPurposeCloud_ptr_->is_dense;
     outputCloud.width = npts;
     outputCloud.height = 1;
@@ -262,13 +263,69 @@ void CwruPclUtils::get_gen_purpose_cloud(pcl::PointCloud<pcl::PointXYZ> & output
 // The operation illustrated here is not all that useful.  It uses transformed, selected points,
 // elevates the data by 5cm, and copies the result to the general-purpose cloud variable
 void CwruPclUtils::example_pcl_operation() {
-    int npts = pclTransformedSelectedPoints_ptr_->points.size(); //number of points
-    copy_cloud(pclTransformedSelectedPoints_ptr_,pclGenPurposeCloud_ptr_); //now have a copy of the selected points in gen-purpose object
-    Eigen::Vector3f offset;
-    offset<<0,0,0.05;
-    for (int i = 0; i < npts; ++i) {
-        pclGenPurposeCloud_ptr_->points[i].getVector3fMap() = pclGenPurposeCloud_ptr_->points[i].getVector3fMap()+offset;   
-    }    
+    int npts = pclTransformed_ptr_->points.size(); //number of points
+    copy_cloud(pclTransformed_ptr_,pclGenPurposeCloud_ptr_); //now have a copy of the selected points in gen-purpose object
+    // vector of type Vector3f to contain all points on the plane you selected a patch
+    std::vector<pcl::PointXYZ> points_vec_temp;
+    // to make sure the size of the vector reset to zero and content is clear
+    points_vec_temp.clear();
+    // Eigen::MatrixXf kinectCB_points_mat;
+    // // transform the point cloud data acquired from kinectCB to point cloud data wrt torso frame
+    // transformPointCloudWrtTorso(pclKinect_ptr_, pclTransformedKinect_ptr_);
+    // // make a copy of transformed kinect pcl data to do operation
+    // copyCloud(pclTransformedKinect_ptr_, pclGenPurposeCloud_ptr_);
+    // // convert point cloud data to eigen type
+    // convertPclToEigen(pclGenPurposeCloud_ptr_, &kinectCB_points_mat);
+    double dist_btw_centroid;
+    double dist_btw_centroid_x;
+    double dist_btw_centroid_y;
+    double centroid_x = centroid_[0];
+    double centroid_y = centroid_[1];
+    double centroid_z = centroid_[2];
+    ROS_INFO("the beer plane height is = %f", centroid_z);
+
+    npts = pclGenPurposeCloud_ptr_ -> points.size();
+    ROS_INFO("the points broadcasted by kinect = %d", npts);
+
+    // set height tolerance around the centroid height (z) as central value
+    double est_centroid_height_uplmt = centroid_z + GENERAL_TOL;
+    double est_centroid_height_dwlmt = centroid_z - GENERAL_TOL;
+    double beer_est_height_uplmt = H_GAZEBO_BEER_WRT_TORSO + H_GAZEBO_BEER_TOL;
+    double beer_est_height_dwlmt = H_GAZEBO_BEER_WRT_TORSO - H_GAZEBO_BEER_TOL;
+    // // declare a vector of type Eigen::Vector3d used to hold points which its height close to beer
+    // std::vector<Eigen::Vector3d> points_vec_temp;
+    double test_z;
+    // find out the points that is close to top surface of beer
+
+    for (int i = 0; i < npts; ++i)
+    {
+        // ROS_INFO("checking the column number is = %d", i);
+        test_z = pclGenPurposeCloud_ptr_ -> points[i].z;
+        // find out the points that is close to top surface of beer
+        if (test_z > est_centroid_height_dwlmt && test_z < est_centroid_height_uplmt)
+        {
+            if (test_z > beer_est_height_dwlmt && test_z < beer_est_height_uplmt)
+            {                // ROS_INFO("the z value checking is %f", test_z);
+                dist_btw_centroid_x = pclGenPurposeCloud_ptr_ -> points[i].x - centroid_x;
+                dist_btw_centroid_y = pclGenPurposeCloud_ptr_ -> points[i].y - centroid_y;
+                dist_btw_centroid = sqrt(pow(dist_btw_centroid_x, 2) + pow(dist_btw_centroid_y, 2));
+                // find out points btw centroid in horizental plane
+                if (dist_btw_centroid < (R_GAZEBO_BEER + R_GAZEBO_BEER_TOL))
+                {
+                    points_vec_temp.push_back(pclGenPurposeCloud_ptr_ -> points[i]);
+                }
+            }
+            else
+            {
+                points_vec_temp.push_back(pclGenPurposeCloud_ptr_ -> points[i]);
+            }
+        }
+    }
+    pclGenPurposeCloud_ptr_ -> points.resize(points_vec_temp.size());
+    for (int i = 0; i < points_vec_temp.size(); ++i)
+    {
+        pclGenPurposeCloud_ptr_->points[i] = points_vec_temp[i];
+    }
 } 
 
 
