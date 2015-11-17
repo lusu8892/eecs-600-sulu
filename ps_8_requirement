@@ -1,0 +1,11 @@
+PS8: vision-guided motion
+
+This assignment will be simulation only.  The scenario is:
+
+*select a patch of points on the table top
+
+*have Baxter position its tool coordinate frame with the origin coincident with the table top and the tool-frame z-axis pointing into the table top, oriented normal to the surface
+
+*starting from this point, have Baxter perform a "wiping" motion, as though cleaning the table
+
+Submit a Kazaam movie and either zip file of your code, or a pointer to your code on github

@@ -1,0 +1,4 @@
+<launch>
+<param name="robot_description" 
+textfile="$(find two_links_robot_description)/one_joint_robot_description.urdf"/>
+</launch>
