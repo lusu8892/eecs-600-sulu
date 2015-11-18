@@ -34,6 +34,8 @@ public:
     //utilities to convert between affine and pose
     Eigen::Affine3d transformPoseToEigenAffine3d(geometry_msgs::Pose pose); 
     geometry_msgs::Pose transformEigenAffine3dToPose(Eigen::Affine3d e);
+    void compute_path(Eigen::Vector3d right_up_cnr, Eigen::Vector3d right_dn_cnr, Eigen::Vector3d left_up_cnr
+                Eigen::Vector3d left_dn_cnr rstd::vector<Eigen::Vector3d>& points_on_path);
 
 };
 
@@ -316,4 +318,24 @@ int ArmMotionCommander::rt_arm_request_tool_pose_wrt_torso(void) {
                 tool_pose_stamped_.pose.orientation.y,tool_pose_stamped_.pose.orientation.z,
                 tool_pose_stamped_.pose.orientation.w);
   return (int) cart_result_.return_code;
+}
+
+void ArmMotionCommander::compute_path(Eigen::Vector3d right_up_cnr, Eigen::Vector3d right_dn_cnr, Eigen::Vector3d left_up_cnr
+                Eigen::Vector3d left_dn_cnr rstd::vector<Eigen::Vector3d>& points_on_path)
+{
+    double incremental_x = 0.05;
+    double incremental_y = 0.05;
+    double table_x_span = right_up_cnr[0] - right_dn_cnr[0];
+    double table_y_span = right_up_cnr[1] - right_dn_cnr[1];
+    double x_move_start = right_up_cnr[0];
+    double x_move = x_move_start;
+    double y_move_start = right_up_cnr[1];
+    double y_move = y_move_start;
+
+    points_on_path.clear();
+    points_on_path.push_back(right_up_cnr);
+
+    for (x_move < )
+
+
 }

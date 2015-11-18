@@ -331,7 +331,73 @@ void CwruPclUtils::example_pcl_operation() {
 void CwruPclUtils::find_four_corners(pcl::PointCloud<pcl::PointXYZ>::Ptr input_cloud_ptr, Eigen::Vector3d& right_up_cnr,
             Eigen::Vector3d& right_dn_cnr, Eigen::Vector3d& left_up_cnr, Eigen::Vector3d& left_dn_cnr)
 {
-    
+    Eigen::Vector3f centroid;
+    centroid = compute_centroid(input_cloud_ptr);
+    int npts = input_cloud_ptr -> points.size();
+
+    pcl::PointCloud<pcl::PointXYZ> points_wrt_centroid;
+    points_wrt_centroid.points.resize(npts);
+
+    for (int i = 0; i < npts, ++i)
+    {
+        points_wrt_centroid.points[i].getVector3fMap() = input_cloud_ptr -> points[i].getVector3fMap() - centroid;
+    }
+
+    right_up_cnr << 0,0,0;
+    right_dn_cnr << 0,0,0;
+    left_up_cnr << 0,0,0;
+    left_dn_cnr << 0,0,0;
+    double points_ith_x = 0.0;
+    double points_ith_y = 0.0;
+    double points_ith_z = 0.0;
+
+    for (int i = 0; i < npts, ++i)
+    {
+        points_ith_x = points_wrt_centroid.points[i].x.getVector3fMap();
+        points_ith_y = points_wrt_centroid.points[i].y.getVector3fMap();
+        points_ith_z = points_wrt_centroid.points[i].z.getVector3fMap();
+
+        // finding the most far right up corner points
+        if (points_ith_y > 0 && points_ith_x > 0)
+        {
+            if (sqrt(pow(points_ith_x,2) + pow(points_ith_y,2)) > sqrt(pow(right_up_cnr[0],2) + pow(right_up_cnr[1],2))
+            {
+                right_up_cnr[0] = points_ith_x;
+                right_up_cnr[1] = points_ith_y;
+                right_up_cnr[2] = points_ith_z;
+            }
+        }
+        // finding the most far right down corner point
+        else if (points_ith_y > 0 && points_ith_x < 0)
+        {
+            if (sqrt(pow(points_ith_x,2) + pow(points_ith_y,2)) > sqrt(pow(right_dn_cnr[0],2) + pow(right_dn_cnr[1],2))
+            {
+                right_dn_cnr[0] = points_ith_x;
+                right_dn_cnr[1] = points_ith_y;
+                right_dn_cnr[2] = points_ith_z;
+            }
+        }
+        // finding the most far left up corner point
+        else if (points_ith_y < 0 && points_ith_x > 0)
+        {
+            if (sqrt(pow(points_ith_x,2) + pow(points_ith_y,2)) > sqrt(pow(left_up_cnr[0],2) + pow(left_up_cnr[1],2))
+            {
+                left_up_cnr[0] = points_ith_x;
+                left_up_cnr[1] = points_ith_y;
+                left_up_cnr[2] = points_ith_z;
+            }
+        }
+        // finding the most far left down corner point
+        else if (points_ith_y < 0 && points_ith_x < 0)
+        {
+            if (sqrt(pow(points_ith_x,2) + pow(points_ith_y,2)) > sqrt(pow(left_dn_cnr[0],2) + pow(left_dn_cnr[1],2))
+            {
+                left_dn_cnr[0] = points_ith_x;
+                left_dn_cnr[1] = points_ith_y;
+                left_dn_cnr[2] = points_ith_z;
+            }
+        }
+    }
 }
 
 //generic function to copy an input cloud to an output cloud

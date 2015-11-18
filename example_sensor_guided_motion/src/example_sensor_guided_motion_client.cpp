@@ -56,7 +56,9 @@ int main(int argc, char** argv) {
     Eigen::Affine3d Affine_des_gripper;
     Eigen::Vector3d xvec_des,yvec_des,zvec_des,origin_des;
     geometry_msgs::PoseStamped rt_tool_pose;
-    
+
+    pcl::PointCloud<pcl::PointXYZ> display_cloud; // instantiate a pointcloud object, which will be used for display in rviz
+
     A_sensor_wrt_torso = cwru_pcl_utils.transformTFToEigen(tf_sensor_frame_to_torso_frame);
     Eigen::Vector3f plane_normal, major_axis, centroid;
     Eigen::Matrix3d Rmat;
@@ -64,6 +66,11 @@ int main(int argc, char** argv) {
     double plane_dist;
     double incremental_dist_x;
     double incremental_dist_y;
+    Eigen::Vector3d right_up_cnr,
+                    right_dn_cnr, 
+                    left_up_cnr,
+                    left_dn_cnr;
+    std::vector<Eigen::Vector3d> points_to_move;
     //send a command to plan a joint-space move to pre-defined pose:
     rtn_val=arm_motion_commander.plan_move_to_pre_pose();
     
@@ -80,6 +87,8 @@ int main(int argc, char** argv) {
             //fit a plane to these selected points:
             cwru_pcl_utils.fit_xformed_selected_pts_to_plane(plane_normal, plane_dist);
             ROS_INFO_STREAM(" normal: " << plane_normal.transpose() << "; dist = " << plane_dist);
+            cwru_pcl_utils.example_pcl_operation(); // offset the transformed, selected points and put result in gen-purpose object
+            cwru_pcl_utils.get_gen_purpose_cloud(display_cloud);
 
             major_axis= cwru_pcl_utils.get_major_axis();
             centroid = cwru_pcl_utils.get_centroid();
@@ -113,55 +122,60 @@ int main(int argc, char** argv) {
             else {
                 ROS_WARN("Cartesian path to desired pose not achievable");
             }
-            incremental_dist_x = 0.2;
-            incremental_dist_y = 0.025;
-            // from current pose, the gripper will move 10cm back and forth along its 
-            double origin_des_y_initial = origin_des[1];
-            while (origin_des[1] < origin_des_y_initial + 6 * incremental_dist_y)
-            {
-                origin_des[0] = origin_des[0] + incremental_dist_x;  // move 10cm
-                Affine_des_gripper.translation()=origin_des;
-                rt_tool_pose.pose = arm_motion_commander.transformEigenAffine3dToPose(Affine_des_gripper);
-                rtn_val=arm_motion_commander.rt_arm_plan_path_current_to_goal_pose(rt_tool_pose);
-                if (rtn_val == cwru_action::cwru_baxter_cart_moveResult::SUCCESS)
-                {
-                    //send command to execute planned motion
-                    rtn_val=arm_motion_commander.rt_arm_execute_planned_path();
-                }
-                origin_des[1] = origin_des[1] + incremental_dist_y;  // move 10cm
-                Affine_des_gripper.translation()=origin_des;
-                rt_tool_pose.pose = arm_motion_commander.transformEigenAffine3dToPose(Affine_des_gripper);
-                rtn_val=arm_motion_commander.rt_arm_plan_path_current_to_goal_pose(rt_tool_pose);
-                if (rtn_val == cwru_action::cwru_baxter_cart_moveResult::SUCCESS)
-                {
-                    //send command to execute planned motion
-                    rtn_val=arm_motion_commander.rt_arm_execute_planned_path();
-                }
-                origin_des[0] = origin_des[0] - incremental_dist_x; // move -10cm
-                Affine_des_gripper.translation()=origin_des;
-                rt_tool_pose.pose = arm_motion_commander.transformEigenAffine3dToPose(Affine_des_gripper);
-                rtn_val=arm_motion_commander.rt_arm_plan_path_current_to_goal_pose(rt_tool_pose);
-                if (rtn_val == cwru_action::cwru_baxter_cart_moveResult::SUCCESS)
-                {
-                    //send command to execute planned motion
-                    rtn_val=arm_motion_commander.rt_arm_execute_planned_path();
-                }
-                origin_des[1] = origin_des[1] + incremental_dist_y;  // move 10cm
-                Affine_des_gripper.translation()=origin_des;
-                rt_tool_pose.pose = arm_motion_commander.transformEigenAffine3dToPose(Affine_des_gripper);
-                rtn_val=arm_motion_commander.rt_arm_plan_path_current_to_goal_pose(rt_tool_pose);
-                if (rtn_val == cwru_action::cwru_baxter_cart_moveResult::SUCCESS)
-                {
-                    //send command to execute planned motion
-                    rtn_val=arm_motion_commander.rt_arm_execute_planned_path();
-                }
-            }
-            
-            ros::Duration(1).sleep(); // sleep for half a second
-            rtn_val=arm_motion_commander.plan_move_to_pre_pose();
-            //send command to execute planned motion
-            rtn_val=arm_motion_commander.rt_arm_execute_planned_path();
+            cwru_pcl_utils.find_four_corners(&display_cloud, right_up_cnr, right_dn_cnr, left_up_cnr, left_dn_cnr);
+
+        //     incremental_dist_x = 0.2;
+        //     incremental_dist_y = 0.05;
+        //     // from current pose, the gripper will move 10cm back and forth along its 
+        //     for (int i = 0; i < 10; ++i)
+        //     {
+        //         if (origin_des[1] < origin_des[1] + 4 * incremental_dist_y)
+        //         {
+        //             origin_des[0] = origin_des[0] + incremental_dist_x;  // move 10cm
+        //             Affine_des_gripper.translation()=origin_des;
+        //             rt_tool_pose.pose = arm_motion_commander.transformEigenAffine3dToPose(Affine_des_gripper);
+        //             rtn_val=arm_motion_commander.rt_arm_plan_path_current_to_goal_pose(rt_tool_pose);
+        //             if (rtn_val == cwru_action::cwru_baxter_cart_moveResult::SUCCESS)
+        //             {
+        //                 //send command to execute planned motion
+        //                 rtn_val=arm_motion_commander.rt_arm_execute_planned_path();
+        //             }
+        //             origin_des[1] = origin_des[1] + incremental_dist_y;  // move 10cm
+        //             Affine_des_gripper.translation()=origin_des;
+        //             rt_tool_pose.pose = arm_motion_commander.transformEigenAffine3dToPose(Affine_des_gripper);
+        //             rtn_val=arm_motion_commander.rt_arm_plan_path_current_to_goal_pose(rt_tool_pose);
+        //             if (rtn_val == cwru_action::cwru_baxter_cart_moveResult::SUCCESS)
+        //             {
+        //                 //send command to execute planned motion
+        //                 rtn_val=arm_motion_commander.rt_arm_execute_planned_path();
+        //             }
+        //             origin_des[0] = origin_des[0] - incremental_dist_x; // move -10cm
+        //             Affine_des_gripper.translation()=origin_des;
+        //             rt_tool_pose.pose = arm_motion_commander.transformEigenAffine3dToPose(Affine_des_gripper);
+        //             rtn_val=arm_motion_commander.rt_arm_plan_path_current_to_goal_pose(rt_tool_pose);
+        //             if (rtn_val == cwru_action::cwru_baxter_cart_moveResult::SUCCESS)
+        //             {
+        //                 //send command to execute planned motion
+        //                 rtn_val=arm_motion_commander.rt_arm_execute_planned_path();
+        //             }
+        //             origin_des[1] = origin_des[1] + incremental_dist_y;  // move 10cm
+        //             Affine_des_gripper.translation()=origin_des;
+        //             rt_tool_pose.pose = arm_motion_commander.transformEigenAffine3dToPose(Affine_des_gripper);
+        //             rtn_val=arm_motion_commander.rt_arm_plan_path_current_to_goal_pose(rt_tool_pose);
+        //             if (rtn_val == cwru_action::cwru_baxter_cart_moveResult::SUCCESS)
+        //             {
+        //                 //send command to execute planned motion
+        //                 rtn_val=arm_motion_commander.rt_arm_execute_planned_path();
+        //             }
+        //             ROS_INFO("This is the NO. %d repeatation", ++i);
+        //         }
+        //     }
+        //     ros::Duration(1).sleep(); // sleep for half a second
+        //     rtn_val=arm_motion_commander.plan_move_to_pre_pose();
+        //     //send command to execute planned motion
+        //     rtn_val=arm_motion_commander.rt_arm_execute_planned_path();
         }
+
         ros::Duration(0.5).sleep(); // sleep for half a second
         ros::spinOnce();
     }
