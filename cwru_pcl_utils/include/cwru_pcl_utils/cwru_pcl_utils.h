@@ -98,6 +98,8 @@ public:
     void copy_cloud(PointCloud<pcl::PointXYZ>::Ptr inputCloud, PointCloud<pcl::PointXYZ>::Ptr outputCloud); 
     void get_gen_purpose_cloud(pcl::PointCloud<pcl::PointXYZ> & outputCloud );    
     void example_pcl_operation();
+    void find_four_corners(pcl::PointCloud<pcl::PointXYZ>::Ptr input_cloud_ptr, Eigen::Vector3d& right_up_cnr,
+            Eigen::Vector3d& right_dn_cnr, Eigen::Vector3d& left_up_cnr, Eigen::Vector3d& left_dn_cnr);
     
     Eigen::Vector3f get_centroid() { return centroid_; }
     Eigen::Vector3f get_major_axis() { return major_axis_; }

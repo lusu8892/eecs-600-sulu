@@ -328,6 +328,11 @@ void CwruPclUtils::example_pcl_operation() {
     }
 } 
 
+void CwruPclUtils::find_four_corners(pcl::PointCloud<pcl::PointXYZ>::Ptr input_cloud_ptr, Eigen::Vector3d& right_up_cnr,
+            Eigen::Vector3d& right_dn_cnr, Eigen::Vector3d& left_up_cnr, Eigen::Vector3d& left_dn_cnr)
+{
+    
+}
 
 //generic function to copy an input cloud to an output cloud
 // provide pointers to the two clouds
