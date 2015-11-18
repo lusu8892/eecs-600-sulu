@@ -34,8 +34,8 @@ public:
     //utilities to convert between affine and pose
     Eigen::Affine3d transformPoseToEigenAffine3d(geometry_msgs::Pose pose); 
     geometry_msgs::Pose transformEigenAffine3dToPose(Eigen::Affine3d e);
-    void compute_path(Eigen::Vector3d right_up_cnr, Eigen::Vector3d right_dn_cnr, Eigen::Vector3d left_up_cnr
-                Eigen::Vector3d left_dn_cnr rstd::vector<Eigen::Vector3d>& points_on_path);
+    void compute_path(Eigen::Vector3d right_up_cnr, Eigen::Vector3d right_dn_cnr, Eigen::Vector3d left_up_cnr,
+                Eigen::Vector3d left_dn_cnr, std::vector<Eigen::Vector3d>& points_on_path);
 
 };
 
@@ -320,22 +320,63 @@ int ArmMotionCommander::rt_arm_request_tool_pose_wrt_torso(void) {
   return (int) cart_result_.return_code;
 }
 
-void ArmMotionCommander::compute_path(Eigen::Vector3d right_up_cnr, Eigen::Vector3d right_dn_cnr, Eigen::Vector3d left_up_cnr
-                Eigen::Vector3d left_dn_cnr rstd::vector<Eigen::Vector3d>& points_on_path)
+void ArmMotionCommander::compute_path(Eigen::Vector3d right_up_cnr, Eigen::Vector3d right_dn_cnr, Eigen::Vector3d left_up_cnr,
+                Eigen::Vector3d left_dn_cnr, std::vector<Eigen::Vector3d>& points_on_path_vec)
 {
-    double incremental_x = 0.05;
-    double incremental_y = 0.05;
+    double incremental_x = 0.1;  // move along torso + x-direction
+    double incremental_y = 0.1;  // move along torso + y-direction
     double table_x_span = right_up_cnr[0] - right_dn_cnr[0];
     double table_y_span = right_up_cnr[1] - right_dn_cnr[1];
-    double x_move_start = right_up_cnr[0];
+    double x_move_start = right_dn_cnr[0];
     double x_move = x_move_start;
-    double y_move_start = right_up_cnr[1];
+    double x_move_end = x_move_start +table_x_span;
+    double y_move_start = right_dn_cnr[1];
     double y_move = y_move_start;
+    double y_move_end = y_move_start + table_y_span;
+    double z_move = (right_up_cnr[2] + right_dn_cnr[2] + left_up_cnr[2] + left_dn_cnr[2]) / 4;
+    Eigen::Vector3d points_on_path;
 
-    points_on_path.clear();
-    points_on_path.push_back(right_up_cnr);
+    points_on_path_vec.clear();
+    points_on_path_vec.push_back(right_up_cnr);
 
-    for (x_move < )
-
-
+    for(int i = 0; y_move <= y_move_end; i++)
+    {
+        if (i%2 == 0)
+        {
+            while (x_move <= x_move_end)
+            {
+                x_move += incremental_x;
+                points_on_path[0] = x_move;
+                points_on_path[1] = y_move;
+                points_on_path[2] = z_move;
+                points_on_path_vec.push_back(points_on_path);
+            }
+            // if (x_move == x_move_end)
+            // {
+            //     points_on_path[0] = x_move;
+            //     points_on_path[1] = y_move;
+            //     points_on_path[2] = z_move;
+            //     points_on_path_vec.push_back(points_on_path);
+            // }
+        }
+        if (i%2 == 1)
+        {
+            while (x_move >= x_move_start)
+            {
+                points_on_path[0] = x_move;
+                points_on_path[1] = y_move;
+                points_on_path[2] = z_move;
+                points_on_path_vec.push_back(points_on_path);
+                x_move -= incremental_x;
+            }
+            // if (x_move == x_move_start)
+            // {
+            //     points_on_path[0] = x_move;
+            //     points_on_path[1] = y_move;
+            //     points_on_path[2] = z_move;
+            //     points_on_path_vec.push_back(points_on_path);
+            // }
+        }
+         y_move += incremental_y;
+    }
 }

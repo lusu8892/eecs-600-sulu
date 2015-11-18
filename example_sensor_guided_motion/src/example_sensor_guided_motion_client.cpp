@@ -57,9 +57,17 @@ int main(int argc, char** argv) {
     Eigen::Vector3d xvec_des,yvec_des,zvec_des,origin_des;
     geometry_msgs::PoseStamped rt_tool_pose;
 
+    ros::Publisher pubCloud = nh.advertise<sensor_msgs::PointCloud2> ("/pcl_cloud_display", 1);
+    //pcl::PointCloud<pcl::PointXYZ> & outputCloud
     pcl::PointCloud<pcl::PointXYZ> display_cloud; // instantiate a pointcloud object, which will be used for display in rviz
+    sensor_msgs::PointCloud2 pcl2_display_cloud; //(new sensor_msgs::PointCloud2); //corresponding data type for ROS message
+
 
     A_sensor_wrt_torso = cwru_pcl_utils.transformTFToEigen(tf_sensor_frame_to_torso_frame);
+    // we don't need to have it returned; cwru_pcl_utils can own it as a member var
+    cwru_pcl_utils.transform_kinect_cloud(A_sensor_wrt_torso);
+    //save this transformed data to disk:
+    cwru_pcl_utils.save_transformed_kinect_snapshot();
     Eigen::Vector3f plane_normal, major_axis, centroid;
     Eigen::Matrix3d Rmat;
     int rtn_val;
@@ -67,10 +75,11 @@ int main(int argc, char** argv) {
     double incremental_dist_x;
     double incremental_dist_y;
     Eigen::Vector3d right_up_cnr,
-                    right_dn_cnr, 
-                    left_up_cnr,
-                    left_dn_cnr;
-    std::vector<Eigen::Vector3d> points_to_move;
+                            right_dn_cnr,
+                            left_up_cnr,
+                            left_dn_cnr;
+    std::vector<Eigen::Vector3d> points_on_path_vec;
+    int npts_on_path;
     //send a command to plan a joint-space move to pre-defined pose:
     rtn_val=arm_motion_commander.plan_move_to_pre_pose();
     
@@ -122,7 +131,31 @@ int main(int argc, char** argv) {
             else {
                 ROS_WARN("Cartesian path to desired pose not achievable");
             }
-            cwru_pcl_utils.find_four_corners(&display_cloud, right_up_cnr, right_dn_cnr, left_up_cnr, left_dn_cnr);
+            cwru_pcl_utils.find_four_corners(right_up_cnr, right_dn_cnr, left_up_cnr, left_dn_cnr);
+            ROS_INFO_STREAM(right_up_cnr.transpose() << right_dn_cnr.transpose()  << left_up_cnr.transpose()  << left_dn_cnr.transpose());
+            arm_motion_commander.compute_path(right_up_cnr, right_dn_cnr, left_up_cnr, left_dn_cnr, points_on_path_vec);
+            npts_on_path = points_on_path_vec.size();
+            ROS_INFO("the number of points on path %d", npts_on_path);
+
+            for (int i = 0; i < npts_on_path; ++i)
+            {
+                Affine_des_gripper.translation() = points_on_path_vec[i];
+                rt_tool_pose.pose = arm_motion_commander.transformEigenAffine3dToPose(Affine_des_gripper);
+                rtn_val=arm_motion_commander.rt_arm_plan_path_current_to_goal_pose(rt_tool_pose);
+                if (rtn_val == cwru_action::cwru_baxter_cart_moveResult::SUCCESS)
+                {
+                //send command to execute planned motion
+                    rtn_val=arm_motion_commander.rt_arm_execute_planned_path();
+                }
+                else
+                {
+                    ROS_WARN("Cartesian path to desired pose not achievable");
+                }
+            }
+            ros::Duration(1).sleep(); // sleep for half a second
+            rtn_val=arm_motion_commander.plan_move_to_pre_pose();
+            //send command to execute planned motion
+            rtn_val=arm_motion_commander.rt_arm_execute_planned_path();
 
         //     incremental_dist_x = 0.2;
         //     incremental_dist_y = 0.05;
@@ -175,7 +208,9 @@ int main(int argc, char** argv) {
         //     //send command to execute planned motion
         //     rtn_val=arm_motion_commander.rt_arm_execute_planned_path();
         }
-
+        pcl::toROSMsg(display_cloud, pcl2_display_cloud); //convert datatype to compatible ROS message type for publication
+        pcl2_display_cloud.header.stamp = ros::Time::now(); //update the time stamp, so rviz does not complain        
+        pubCloud.publish(pcl2_display_cloud); //publish a point cloud that can be viewed in rviz (under topic pcl_cloud_display)
         ros::Duration(0.5).sleep(); // sleep for half a second
         ros::spinOnce();
     }

@@ -328,19 +328,20 @@ void CwruPclUtils::example_pcl_operation() {
     }
 } 
 
-void CwruPclUtils::find_four_corners(pcl::PointCloud<pcl::PointXYZ>::Ptr input_cloud_ptr, Eigen::Vector3d& right_up_cnr,
-            Eigen::Vector3d& right_dn_cnr, Eigen::Vector3d& left_up_cnr, Eigen::Vector3d& left_dn_cnr)
+void CwruPclUtils::find_four_corners(Eigen::Vector3d& right_up_cnr, Eigen::Vector3d& right_dn_cnr,
+                        Eigen::Vector3d& left_up_cnr, Eigen::Vector3d& left_dn_cnr)
 {
     Eigen::Vector3f centroid;
-    centroid = compute_centroid(input_cloud_ptr);
-    int npts = input_cloud_ptr -> points.size();
+    centroid = compute_centroid(pclGenPurposeCloud_ptr_);
+    int npts = pclGenPurposeCloud_ptr_ -> points.size();
+    ROS_INFO("number of points on table: %d", npts);
 
     pcl::PointCloud<pcl::PointXYZ> points_wrt_centroid;
     points_wrt_centroid.points.resize(npts);
 
-    for (int i = 0; i < npts, ++i)
+    for (int i = 0; i < npts; ++i)
     {
-        points_wrt_centroid.points[i].getVector3fMap() = input_cloud_ptr -> points[i].getVector3fMap() - centroid;
+        points_wrt_centroid.points[i].getVector3fMap() = pclGenPurposeCloud_ptr_ -> points[i].getVector3fMap() - centroid;
     }
 
     right_up_cnr << 0,0,0;
@@ -351,16 +352,16 @@ void CwruPclUtils::find_four_corners(pcl::PointCloud<pcl::PointXYZ>::Ptr input_c
     double points_ith_y = 0.0;
     double points_ith_z = 0.0;
 
-    for (int i = 0; i < npts, ++i)
+    for (int i = 0; i < npts; ++i)
     {
-        points_ith_x = points_wrt_centroid.points[i].x.getVector3fMap();
-        points_ith_y = points_wrt_centroid.points[i].y.getVector3fMap();
-        points_ith_z = points_wrt_centroid.points[i].z.getVector3fMap();
+        points_ith_x = (double) points_wrt_centroid.points[i].x;
+        points_ith_y = (double) points_wrt_centroid.points[i].y;
+        points_ith_z = (double) points_wrt_centroid.points[i].z;
 
         // finding the most far right up corner points
         if (points_ith_y > 0 && points_ith_x > 0)
         {
-            if (sqrt(pow(points_ith_x,2) + pow(points_ith_y,2)) > sqrt(pow(right_up_cnr[0],2) + pow(right_up_cnr[1],2))
+            if (sqrt(pow(points_ith_x,2) + pow(points_ith_y,2)) > sqrt(pow(right_up_cnr[0],2) + pow(right_up_cnr[1],2)))
             {
                 right_up_cnr[0] = points_ith_x;
                 right_up_cnr[1] = points_ith_y;
@@ -370,7 +371,7 @@ void CwruPclUtils::find_four_corners(pcl::PointCloud<pcl::PointXYZ>::Ptr input_c
         // finding the most far right down corner point
         else if (points_ith_y > 0 && points_ith_x < 0)
         {
-            if (sqrt(pow(points_ith_x,2) + pow(points_ith_y,2)) > sqrt(pow(right_dn_cnr[0],2) + pow(right_dn_cnr[1],2))
+            if (sqrt(pow(points_ith_x,2) + pow(points_ith_y,2)) > sqrt(pow(right_dn_cnr[0],2) + pow(right_dn_cnr[1],2)))
             {
                 right_dn_cnr[0] = points_ith_x;
                 right_dn_cnr[1] = points_ith_y;
@@ -380,7 +381,7 @@ void CwruPclUtils::find_four_corners(pcl::PointCloud<pcl::PointXYZ>::Ptr input_c
         // finding the most far left up corner point
         else if (points_ith_y < 0 && points_ith_x > 0)
         {
-            if (sqrt(pow(points_ith_x,2) + pow(points_ith_y,2)) > sqrt(pow(left_up_cnr[0],2) + pow(left_up_cnr[1],2))
+            if (sqrt(pow(points_ith_x,2) + pow(points_ith_y,2)) > sqrt(pow(left_up_cnr[0],2) + pow(left_up_cnr[1],2)))
             {
                 left_up_cnr[0] = points_ith_x;
                 left_up_cnr[1] = points_ith_y;
@@ -390,7 +391,7 @@ void CwruPclUtils::find_four_corners(pcl::PointCloud<pcl::PointXYZ>::Ptr input_c
         // finding the most far left down corner point
         else if (points_ith_y < 0 && points_ith_x < 0)
         {
-            if (sqrt(pow(points_ith_x,2) + pow(points_ith_y,2)) > sqrt(pow(left_dn_cnr[0],2) + pow(left_dn_cnr[1],2))
+            if (sqrt(pow(points_ith_x,2) + pow(points_ith_y,2)) > sqrt(pow(left_dn_cnr[0],2) + pow(left_dn_cnr[1],2)))
             {
                 left_dn_cnr[0] = points_ith_x;
                 left_dn_cnr[1] = points_ith_y;
@@ -398,6 +399,11 @@ void CwruPclUtils::find_four_corners(pcl::PointCloud<pcl::PointXYZ>::Ptr input_c
             }
         }
     }
+    // the four corners found is wrt to centroid, need to be converted wrt torsor frame
+    right_up_cnr = right_up_cnr + centroid.cast<double>();
+    right_dn_cnr = right_dn_cnr + centroid.cast<double>();
+    left_up_cnr = left_up_cnr + centroid.cast<double>();
+    left_dn_cnr = left_dn_cnr + centroid.cast<double>();
 }
 
 //generic function to copy an input cloud to an output cloud
