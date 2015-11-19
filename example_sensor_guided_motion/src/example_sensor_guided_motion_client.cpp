@@ -98,6 +98,11 @@ int main(int argc, char** argv) {
             ROS_INFO_STREAM(" normal: " << plane_normal.transpose() << "; dist = " << plane_dist);
             cwru_pcl_utils.example_pcl_operation(); // offset the transformed, selected points and put result in gen-purpose object
             cwru_pcl_utils.get_gen_purpose_cloud(display_cloud);
+            
+            pcl::toROSMsg(display_cloud, pcl2_display_cloud); //convert datatype to compatible ROS message type for publication
+            pcl2_display_cloud.header.stamp = ros::Time::now(); //update the time stamp, so rviz does not complain        
+            pubCloud.publish(pcl2_display_cloud); //publish a point cloud that can be viewed in rviz (under topic pcl_cloud_display)
+            ros::spinOnce();
 
             major_axis= cwru_pcl_utils.get_major_axis();
             centroid = cwru_pcl_utils.get_centroid();
@@ -133,6 +138,7 @@ int main(int argc, char** argv) {
             }
             cwru_pcl_utils.find_four_corners(right_up_cnr, right_dn_cnr, left_up_cnr, left_dn_cnr);
             ROS_INFO_STREAM(right_up_cnr.transpose() << right_dn_cnr.transpose()  << left_up_cnr.transpose()  << left_dn_cnr.transpose());
+            
             arm_motion_commander.compute_path(right_up_cnr, right_dn_cnr, left_up_cnr, left_dn_cnr, points_on_path_vec);
             npts_on_path = points_on_path_vec.size();
             ROS_INFO("the number of points on path %d", npts_on_path);
@@ -208,9 +214,9 @@ int main(int argc, char** argv) {
         //     //send command to execute planned motion
         //     rtn_val=arm_motion_commander.rt_arm_execute_planned_path();
         }
-        pcl::toROSMsg(display_cloud, pcl2_display_cloud); //convert datatype to compatible ROS message type for publication
-        pcl2_display_cloud.header.stamp = ros::Time::now(); //update the time stamp, so rviz does not complain        
-        pubCloud.publish(pcl2_display_cloud); //publish a point cloud that can be viewed in rviz (under topic pcl_cloud_display)
+        // pcl::toROSMsg(display_cloud, pcl2_display_cloud); //convert datatype to compatible ROS message type for publication
+        // pcl2_display_cloud.header.stamp = ros::Time::now(); //update the time stamp, so rviz does not complain        
+        // pubCloud.publish(pcl2_display_cloud); //publish a point cloud that can be viewed in rviz (under topic pcl_cloud_display)
         ros::Duration(0.5).sleep(); // sleep for half a second
         ros::spinOnce();
     }

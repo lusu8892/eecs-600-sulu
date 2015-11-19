@@ -325,21 +325,37 @@ void ArmMotionCommander::compute_path(Eigen::Vector3d right_up_cnr, Eigen::Vecto
 {
     double incremental_x = 0.1;  // move along torso + x-direction
     double incremental_y = 0.1;  // move along torso + y-direction
+    
     double table_x_span = right_up_cnr[0] - right_dn_cnr[0];
-    double table_y_span = right_up_cnr[1] - right_dn_cnr[1];
+    ROS_INFO("table_x_span %f", table_x_span);
+    
+    double table_y_span = right_up_cnr[1] - left_up_cnr[1];
+    ROS_INFO("table_y_span %f", table_y_span);
+    
     double x_move_start = right_dn_cnr[0];
+    ROS_INFO("x_move_start %f", x_move_start);
+    
     double x_move = x_move_start;
+
     double x_move_end = x_move_start +table_x_span;
-    double y_move_start = right_dn_cnr[1];
+    ROS_INFO("x_move_end %f", x_move_end);
+
+    double y_move_start = left_dn_cnr[1];
+    ROS_INFO("y_move_start %f", y_move_start);
+
     double y_move = y_move_start;
+
     double y_move_end = y_move_start + table_y_span;
+    ROS_INFO("y_move_end %f", y_move_end);
+
     double z_move = (right_up_cnr[2] + right_dn_cnr[2] + left_up_cnr[2] + left_dn_cnr[2]) / 4;
+
     Eigen::Vector3d points_on_path;
 
     points_on_path_vec.clear();
     points_on_path_vec.push_back(right_up_cnr);
 
-    for(int i = 0; y_move <= y_move_end; i++)
+    for(int i = 0; y_move < y_move_end; i++)
     {
         if (i%2 == 0)
         {
@@ -349,6 +365,7 @@ void ArmMotionCommander::compute_path(Eigen::Vector3d right_up_cnr, Eigen::Vecto
                 points_on_path[0] = x_move;
                 points_on_path[1] = y_move;
                 points_on_path[2] = z_move;
+                ROS_INFO("on %d odd column, x: %f, y: %f, z: %f", i, points_on_path[0], points_on_path[1], points_on_path[2]);
                 points_on_path_vec.push_back(points_on_path);
             }
             // if (x_move == x_move_end)
@@ -366,6 +383,7 @@ void ArmMotionCommander::compute_path(Eigen::Vector3d right_up_cnr, Eigen::Vecto
                 points_on_path[0] = x_move;
                 points_on_path[1] = y_move;
                 points_on_path[2] = z_move;
+                ROS_INFO("on %d even column, x: %f, y: %f, z: %f", i, points_on_path[0], points_on_path[1], points_on_path[2]);
                 points_on_path_vec.push_back(points_on_path);
                 x_move -= incremental_x;
             }
